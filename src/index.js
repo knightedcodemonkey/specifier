@@ -13,36 +13,88 @@ const makeError = (filename, msg, ctx) => {
     errorContext: ctx,
   }
 }
+const validateFilename = async (filename, path) => {
+  let stats = null
+
+  try {
+    stats = await stat(filename)
+  } catch {
+    return {
+      error: makeError(
+        filename,
+        `The provided path ${path} does not resolve to a file on disk.`,
+      ),
+    }
+  }
+
+  if (!stats.isFile()) {
+    return {
+      error: makeError(filename, `The provided path ${path} is not a file.`),
+    }
+  }
+
+  return { error: false }
+}
+const getAst = (file, filename) => {
+  try {
+    return parse(file)
+  } catch (err) {
+    const { loc, pos, raisedAt } = err
+
+    return {
+      error: makeError(filename, err.message, { loc, pos, raisedAt }),
+    }
+  }
+}
 const specifier = {
   async update(path, callback) {
     const filename = resolve(path)
-    let stats = null
+    const validation = await validateFilename(filename, path)
 
-    try {
-      stats = await stat(filename)
-    } catch {
-      return makeError(
-        filename,
-        `The provided path ${path} does not resolve to a file on disk.`,
-      )
-    }
-
-    if (!stats.isFile()) {
-      return makeError(filename, `The provided path ${path} is not a file.`)
+    if (validation.error) {
+      return validation.error
     }
 
     const file = (await readFile(filename)).toString()
-    let ast = null
+    const ast = getAst(file, filename)
 
-    try {
-      ast = parse(file)
-    } catch (err) {
-      const { loc, pos, raisedAt } = err
-
-      return makeError(filename, err.message, { loc, pos, raisedAt })
+    if (ast.error) {
+      return ast.error
     }
 
     return format(file, ast, callback)
+  },
+
+  async mapper(path, map) {
+    const filename = resolve(path)
+    const validation = await validateFilename(filename, path)
+
+    if (validation.error) {
+      return validation.error
+    }
+
+    const file = (await readFile(filename)).toString()
+    const ast = getAst(file, filename)
+
+    if (ast.error) {
+      return ast.error
+    }
+
+    const entries = Object.entries(map)
+    const mapped = []
+
+    for (const [key, value] of entries) {
+      try {
+        mapped.push([new RegExp(key), value])
+      } catch (err) {
+        return makeError(
+          filename,
+          `Could not create RegExp from provided map: ${err.message}`,
+        )
+      }
+    }
+
+    return format(file, ast, mapped)
   },
 }
 

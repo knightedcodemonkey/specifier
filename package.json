@@ -1,7 +1,7 @@
 {
   "name": "@knighted/specifier",
-  "version": "1.0.0-alpha.0",
-  "description": "Node tool for updating your import and export specifiers.",
+  "version": "1.0.0-alpha.1",
+  "description": "Node tool for updating your ESM import and export specifiers.",
   "type": "module",
   "main": "dist",
   "exports": {
@@ -24,12 +24,12 @@
   },
   "keywords": [
     "specifier",
+    "esm",
     "import",
     "export",
+    "dynamic import",
     "update",
-    "esm",
-    "cjs",
-    "dual package"
+    "mapper"
   ],
   "files": [
     "dist"
