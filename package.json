@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "1.0.0-alpha.3",
+  "version": "1.0.0-alpha.4",
   "description": "Node tool for updating your ESM import and export specifiers.",
   "type": "module",
   "main": "dist",

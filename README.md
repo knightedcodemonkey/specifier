@@ -45,10 +45,9 @@ const code = await specifier.mapper('dist/index.js', {
 
 The order of the keys in the map object matters, the first match found will be used, so the most specific rule should be defined first. Additionally, you can substitute captured regex groups using numbered backreferences.
 
-
 ## `async specifier.update(filename, callback)`
 
-Updates specifiers in `filename` using the values returned from `callback`, and returns the updated file contents. The callback is called for each specifier found, and the returned value is used to update the related specifier value. If the callback returns anything other than a string, the return value will be ignored and the specifier not updated.
+Updates specifiers in `filename` using the values returned from `callback`, and returns the updated file content. The callback is called for each specifier found, and the returned value is used to update the related specifier value. If the callback returns anything other than a string, the return value will be ignored and the specifier not updated.
 
 ### Signature
 
@@ -70,7 +69,7 @@ interface SourceLocation {
 interface UpdateError {
     error: boolean;
     msg: string;
-    filename: string;
+    filename: string | undefined;
     syntaxError: boolean;
     errorContext: undefined | {
       code: string;
@@ -93,12 +92,24 @@ The `Specifier.value` will not include any surrounding quotes or backticks when 
 
 ## `async specifier.mapper(filename, regexMap)`
 
-Updates specifiers in `filename` using the provided `regexMap` object and returns the updated file contents. The value of the first key to match in `regexMap` is used, so more specific rules should be defined first. Numbered backreferences of captured groups can be used.
+Updates specifiers in `filename` using the provided `regexMap` object and returns the updated file content. The value of the first key to match in `regexMap` is used, so more specific rules should be defined first. Numbered backreferences of captured groups can be used.
 
 ### Signature
 
 ```ts
-type Mapper = (filename: string, regexMap: {[k: string]: string}) => Promise<string | MapperError>;
+type Mapper = (filename: string, regexMap: {[regex: string]: string}) => Promise<string | MapperError>;
 ```
 
-Where `MapperError` is an alias for `UpdateError` defined above.
+Where `MapperError` is an alias for `UpdateError` defined above. For the other definitions see [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
+
+## `async specifier.updateCode(code, callback, dts = false)`
+
+Updates specifiers in source `code` using the values returned from `callback`, and returns the updated source code string. If the provided source `code` is from a TypeScript declaration file you should pass `true` for the last argument to support parsing of [ambient contexts](https://stackoverflow.com/a/61082185/258174) in `.d.ts`, `.d.mts`, and `.d.cts` files.
+
+### Signature
+
+```ts
+type UpdateCode = (code: string, callback: (spec: Specifier) => any) => Promise<string | UpdateCodeError>;
+```
+
+Where `UpdateCodeError` is an alias for `UpdateError`. For the other definitions see [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).

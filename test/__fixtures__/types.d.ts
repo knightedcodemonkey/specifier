@@ -6,3 +6,5 @@ declare namespace Express {
     user: import("./user").User;
   }
 }
+
+export type { Match }
