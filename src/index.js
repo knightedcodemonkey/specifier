@@ -46,6 +46,17 @@ const getAst = (file, filename) => {
     }
   }
 }
+const getCodeAst = (code, dts = false) => {
+  try {
+    return parse(code, dts)
+  } catch (err) {
+    const { code, reasonCode, loc, pos } = err
+
+    return {
+      error: makeError(undefined, err.message, { code, reasonCode, loc, pos }),
+    }
+  }
+}
 const specifier = {
   async update(path, callback) {
     if (callback !== null && typeof callback === 'object') {
@@ -67,6 +78,25 @@ const specifier = {
     }
 
     return format(file, ast, callback)
+  },
+
+  /**
+   * Some client might be part of a particular build's plugin system.
+   * This is here to support that use case, where the filename is not
+   * provided but rather the source code.
+   *
+   * @param {string} code The source code to update.
+   * @param {Function} callback The function provided the updated specifier value, if any.
+   * @param {Boolean} dts Whether to parse for TypeScript's ambient contexts.
+   */
+  async updateCode(code, callback, dts = false) {
+    const ast = getCodeAst(code, dts)
+
+    if (ast.error) {
+      return ast.error
+    }
+
+    return format(code, ast, callback)
   },
 
   async mapper(path, map) {
