@@ -37,7 +37,7 @@ const validateFilename = async (filename, path) => {
 }
 const getAst = (file, filename) => {
   try {
-    return parse(file)
+    return parse(file, /\.d\.[mc]?ts$/.test(filename))
   } catch (err) {
     const { code, reasonCode, loc, pos } = err
 

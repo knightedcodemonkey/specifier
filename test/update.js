@@ -11,7 +11,7 @@ const fixtures = resolve(__dirname, '__fixtures__')
 const { update } = specifier
 
 describe('update', () => {
-  it('updates specifiers in a import declarations', async () => {
+  it('updates specifiers in import declarations', async () => {
     const code = await update(join(fixtures, 'importDeclaration.js'), spec => {
       return spec.value.replace(/(.+)\.js$/, '$1.mjs')
     })
