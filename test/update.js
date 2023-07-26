@@ -49,7 +49,7 @@ describe('update', () => {
     const tl = './foo/${bar}.mjs'
     const code = await update(join(fixtures, 'importExpression.js'), spec => {
       switch (spec.type) {
-        case 'Literal':
+        case 'StringLiteral':
           return lit
         case 'BinaryExpression':
           return be
@@ -80,8 +80,31 @@ describe('update', () => {
     ret = await update('test/__fixtures__/syntaxError.js')
 
     assert.equal(ret.error, true)
+    assert.ok(typeof ret.errorContext.reasonCode === 'string')
     assert.ok(Number.isFinite(ret.errorContext.pos))
-    assert.ok(Number.isFinite(ret.errorContext.raisedAt))
     assert.ok(ret.errorContext.loc !== null && typeof ret.errorContext.loc === 'object')
+  })
+
+  it('works with typescript', async () => {
+    const code = await update(join(fixtures, 'types.d.ts'), spec => {
+      if (spec.value === './user') {
+        return './user.mjs'
+      }
+
+      if (spec.value.includes('some-types')) {
+        return './other-types.js'
+      }
+    })
+
+    assert.ok(code.indexOf('./user.mjs') > -1)
+    assert.ok(code.indexOf('./other-types.js') > -1)
+  })
+
+  it('wraps specifier.mapper if second arg is an object', async () => {
+    const code = await update(join(fixtures, 'importDeclaration.js'), {
+      '([^.]+)\\.js$': '$1.cjs',
+    })
+
+    assert.ok(code.indexOf('./path/to/module.cjs') > -1)
   })
 })
