@@ -6,59 +6,66 @@
 
 Node.js tool for updating your ESM `import` and `export` specifiers, before or after your build.
 
+Supports:
+
+* Latest ECMAScript
+* TypeScript
+* JSX
+
 ## Example
 
-The following script will update all specifiers in `dist/index.cjs` with an [ESTree node.type](https://github.com/estree/estree/blob/master/es5.md#node-objects) of `Literal`, and that also end with a `.js` extension, to end with a `.cjs` extension instead.
+The following script will update all specifiers in `dist/index.js` with an [AST node.type](https://github.com/babel/babel/blob/main/packages/babel-parser/ast/spec.md#node-objects) of `StringLiteral`, and that also end with a `.js` extension, to end with an `.mjs` extension instead. Finally, it writes the updated source to `dist/index.mjs`.
 
 **script.js**
 
 ```js
+import { writeFile } from 'node:fs/promises'
 import { specifier } from '@knighted/specifier'
 
-const code = specifier.update('dist/index.cjs', ({ type, value }) => {
-  if (type === 'Literal') {
-    return value.replace(/([^.]+)\.js$/, '$1.cjs')
+const code = await specifier.update('dist/index.js', ({ type, value }) => {
+  if (type === 'StringLiteral') {
+    return value.replace(/([^.]+)\.js$/, '$1.mjs')
   }
 })
-```
 
-Now `code` can be used to write the updated source to a file.
+if (!code.error) {
+  await writeFile('dist/index.mjs', code)
+}
+```
 
 You can also provide an object where the keys are regular expressions and the values are the [`replace`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace)ments to make when the regular expression matches.
 
 The following does the same as before.
 
 ```js
-const code = specifier.mapper('dist/index.cjs', {
-  '([^.]+)\\.js$': '$1.cjs'
+const code = await specifier.mapper('dist/index.js', {
+  '([^.]+)\\.js$': '$1.mjs'
 })
 ```
 
-The order of the keys in the map object matters, the first match found will be used, so the most specific rule should be defined first.
+The order of the keys in the map object matters, the first match found will be used, so the most specific rule should be defined first. Additionally, you can substitute captured regex groups using numbered backreferences.
 
 
-## `specifier.update(filename, callback)`
+## `async specifier.update(filename, callback)`
 
 Updates specifiers in `filename` using the values returned from `callback`, and returns the updated file contents. The callback is called for each specifier found, and the returned value is used to update the related specifier value. If the callback returns anything other than a string, the return value will be ignored and the specifier not updated.
 
 ### Signature
 
 ```ts
-type Update = (filename: string, callback: (spec: Specifier) => any) => string | UpdateError;
+type Update = (filename: string, callback: (spec: Specifier) => any) => Promise<string | UpdateError>;
 ```
 
 Where the other types are defined as such.
 
 ```ts
+interface Position {
+  line: number;
+  column: number;
+}
 interface SourceLocation {
-  start: {
-    line: number;
-    column: number;
-  },
-  end: {
-    line: number;
-    column: number;
-  }
+  start: Position;
+  end: Position;
 }
 interface UpdateError {
     error: boolean;
@@ -66,13 +73,14 @@ interface UpdateError {
     filename: string;
     syntaxError: boolean;
     errorContext: undefined | {
+      code: string;
+      reasonCode: string;
       pos: number;
-      raisedAt: number;
-      loc: SourceLocation
+      loc: Position;
     }
 }
 interface Specifier {
-    type: string;
+    type: 'StringLiteral' | 'TemplateLiteral' | 'BinaryExpression' | 'NewExpression';
     start: number;
     end: number;
     value: string;
@@ -80,17 +88,17 @@ interface Specifier {
 }
 ```
 
-The `Specifier.value` will not include any quotes or backticks when the `type` is `Literal` or `TemplateLiteral`, and the return value from `callback` is not expected to inclued them either.
+The `Specifier.value` will not include any surrounding quotes or backticks when the `type` is `StringLiteral` or `TemplateLiteral`, and the return value from `callback` is not expected to include them either.
 
 
-## `specifier.mapper(filename, regexMap)`
+## `async specifier.mapper(filename, regexMap)`
 
-Updates specifiers in `filename` using the provided `regexMap` object and returns the updated file contents. The value of the first key to match in `regexMap` is used, so more specific rules should be defined first.
+Updates specifiers in `filename` using the provided `regexMap` object and returns the updated file contents. The value of the first key to match in `regexMap` is used, so more specific rules should be defined first. Numbered backreferences of captured groups can be used.
 
 ### Signature
 
 ```ts
-type Mapper = (filename: string, regexMap: {[k: string]: string}) => string | MapperError;
+type Mapper = (filename: string, regexMap: {[k: string]: string}) => Promise<string | MapperError>;
 ```
 
 Where `MapperError` is an alias for `UpdateError` defined above.

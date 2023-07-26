@@ -1,16 +1,12 @@
-import { Parser } from 'acorn'
-import jsx from 'acorn-jsx'
-
-const parser = Parser.extend(jsx())
+import { parse as babelParse } from '@babel/parser'
 
 const parse = source => {
-  const ast = parser.parse(source, {
-    locations: true,
-    ecmaVersion: 2023,
+  const ast = babelParse(source, {
     sourceType: 'module',
     allowAwaitOutsideFunction: true,
     allowReturnOutsideFunction: true,
     allowImportExportEverywhere: true,
+    plugins: ['jsx', ['typescript', { dts: true }]],
   })
 
   return ast

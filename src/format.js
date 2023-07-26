@@ -1,7 +1,7 @@
-import { simple } from 'acorn-walk'
+import _traverse from '@babel/traverse'
 import MagicString from 'magic-string'
-import { dump } from '@knighted/dump'
 
+const traverse = _traverse.default
 const getUpdateFromMap = (map, value) => {
   /**
    * This should be run in insertion order of the original
@@ -25,7 +25,6 @@ const getUpdated = (resolver, opts, specifier) => {
   }
 }
 const update = (sourceNode, code, callbackOrMap) => {
-  dump.log(sourceNode)
   const { type, start, end, loc, value } = sourceNode
   const updated = getUpdated(callbackOrMap, { type, start, end, loc }, value)
 
@@ -36,23 +35,35 @@ const update = (sourceNode, code, callbackOrMap) => {
 const format = (file, ast, callbackOrMap) => {
   const code = new MagicString(file)
 
-  simple(ast, {
-    ImportDeclaration(node) {
+  traverse(ast, {
+    ImportDeclaration({ node }) {
       update(node.source, code, callbackOrMap)
     },
-    ImportExpression(node) {
-      const { source } = node
-      const { type, start, end, loc } = source
+    CallExpression({ node }) {
+      if (node.callee.type === 'Import') {
+        const source = node.arguments[0]
+        const { type, start, end, loc } = source
 
-      switch (source.type) {
-        case 'Literal': {
-          update(source, code, callbackOrMap)
-          break
-        }
-        case 'NewExpression': {
-          const { name } = source.callee
+        switch (source.type) {
+          case 'StringLiteral': {
+            update(source, code, callbackOrMap)
+            break
+          }
+          case 'NewExpression': {
+            const { name } = source.callee
 
-          if (source.callee.type === 'Identifier' && name === 'String') {
+            if (source.callee.type === 'Identifier' && name === 'String') {
+              const value = file.slice(source.start, source.end)
+              const updated = getUpdated(callbackOrMap, { type, start, end, loc }, value)
+
+              if (typeof updated === 'string') {
+                // Should provide "raw" updated value
+                code.update(start, end, updated)
+              }
+            }
+            break
+          }
+          case 'BinaryExpression': {
             const value = file.slice(source.start, source.end)
             const updated = getUpdated(callbackOrMap, { type, start, end, loc }, value)
 
@@ -60,39 +71,32 @@ const format = (file, ast, callbackOrMap) => {
               // Should provide "raw" updated value
               code.update(start, end, updated)
             }
+            break
           }
-          break
-        }
-        case 'BinaryExpression': {
-          const value = file.slice(source.start, source.end)
-          const updated = getUpdated(callbackOrMap, { type, start, end, loc }, value)
+          case 'TemplateLiteral': {
+            const value = file.slice(source.start + 1, source.end - 1)
+            const updated = getUpdated(callbackOrMap, { type, start, end, loc }, value)
 
-          if (typeof updated === 'string') {
-            // Should provide "raw" updated value
-            code.update(start, end, updated)
+            if (typeof updated === 'string') {
+              code.update(start + 1, end - 1, updated)
+            }
+            break
           }
-          break
-        }
-        case 'TemplateLiteral': {
-          const value = file.slice(source.start + 1, source.end - 1)
-          const updated = getUpdated(callbackOrMap, { type, start, end, loc }, value)
-
-          if (typeof updated === 'string') {
-            code.update(start + 1, end - 1, updated)
-          }
-          break
         }
       }
     },
-    ExportNamedDeclaration(node) {
+    ExportNamedDeclaration({ node }) {
       const { source } = node
 
       if (source) {
         update(source, code, callbackOrMap)
       }
     },
-    ExportAllDeclaration(node) {
+    ExportAllDeclaration({ node }) {
       update(node.source, code, callbackOrMap)
+    },
+    TSImportType({ node }) {
+      update(node.argument, code, callbackOrMap)
     },
   })
 

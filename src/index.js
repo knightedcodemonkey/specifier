@@ -39,15 +39,19 @@ const getAst = (file, filename) => {
   try {
     return parse(file)
   } catch (err) {
-    const { loc, pos, raisedAt } = err
+    const { code, reasonCode, loc, pos } = err
 
     return {
-      error: makeError(filename, err.message, { loc, pos, raisedAt }),
+      error: makeError(filename, err.message, { code, reasonCode, loc, pos }),
     }
   }
 }
 const specifier = {
   async update(path, callback) {
+    if (callback !== null && typeof callback === 'object') {
+      return specifier.mapper(path, callback)
+    }
+
     const filename = resolve(path)
     const validation = await validateFilename(filename, path)
 
