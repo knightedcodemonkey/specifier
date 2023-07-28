@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/knightedcodemonkey/specifier/branch/main/graph/badge.svg?token=5KS9ZB3XDK)](https://codecov.io/gh/knightedcodemonkey/specifier)
 [![NPM version](https://img.shields.io/npm/v/@knighted/specifier.svg)](https://www.npmjs.com/package/@knighted/specifier)
 
-Node.js tool for updating your ESM `import` and `export` specifiers, before or after your build.
+Node.js tool for updating your ESM `import` and `export` specifiers. Also updates strings in CJS `require` expressions.
 
 Supports:
 

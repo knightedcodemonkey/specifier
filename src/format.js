@@ -40,7 +40,12 @@ const format = (file, ast, callbackOrMap) => {
       update(node.source, code, callbackOrMap)
     },
     CallExpression({ node }) {
-      if (node.callee.type === 'Import') {
+      const { callee } = node
+
+      if (
+        callee.type === 'Import' ||
+        (callee.type === 'Identifier' && callee.name === 'require')
+      ) {
         const source = node.arguments[0]
         const { type, start, end, loc } = source
 

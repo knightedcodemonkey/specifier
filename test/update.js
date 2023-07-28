@@ -107,4 +107,24 @@ describe('update', () => {
 
     assert.ok(code.indexOf('./path/to/module.cjs') > -1)
   })
+
+  it('updates id strings in require expressions', async () => {
+    const code = await update(join(fixtures, 'require.js'), spec => {
+      // Collapse any BinaryExpression or NewExpression first
+      const collapsed = spec.value.replace(/['"`+)\s]|new String\(/g, '')
+      const relativeIdRegex = /^(?:\.|\.\.)\//i
+
+      if (relativeIdRegex.test(collapsed)) {
+        // $2 is for any closing quotation/parens around BE or NE
+        return spec.value.replace(/(.+)\.js([)'"`]*)?$/, '$1.cjs$2')
+      }
+    })
+
+    assert.ok(code.indexOf('require("./folder/module.cjs")') > -1)
+    assert.ok(code.indexOf("require(new String('./foo.cjs'))") > -1)
+    assert.ok(code.indexOf('require(`./template/${string}.cjs`)') > -1)
+    assert.ok(code.indexOf("require('./binary' + '/expression.cjs')") > -1)
+    // Check that .mjs was left alone
+    assert.ok(code.indexOf('require("./esm.mjs")') > -1)
+  })
 })
