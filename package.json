@@ -1,7 +1,7 @@
 {
   "name": "@knighted/specifier",
-  "version": "1.0.0-alpha.4",
-  "description": "Node tool for updating your ESM import and export specifiers.",
+  "version": "1.0.0-alpha.5",
+  "description": "Node.js tool for updating your ESM specifiers, and CJS require strings.",
   "type": "module",
   "main": "dist",
   "exports": {
@@ -28,6 +28,7 @@
     "import",
     "export",
     "dynamic import",
+    "require",
     "update",
     "mapper"
   ],
