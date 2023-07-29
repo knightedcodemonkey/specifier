@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "description": "Node.js tool for updating your ESM specifiers, and CJS require strings.",
   "type": "module",
   "main": "dist",
