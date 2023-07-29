@@ -28,8 +28,8 @@ describe('updateCode', () => {
 
     assert.equal(ret.error, true)
     assert.ok(ret.msg.startsWith('Unterminated string constant'))
-    assert.ok(typeof ret.errorContext.reasonCode === 'string')
-    assert.ok(Number.isFinite(ret.errorContext.pos))
-    assert.ok(ret.errorContext.loc !== null && typeof ret.errorContext.loc === 'object')
+    assert.ok(typeof ret.syntaxError.reasonCode === 'string')
+    assert.ok(Number.isFinite(ret.syntaxError.pos))
+    assert.ok(ret.syntaxError.loc !== null && typeof ret.syntaxError.loc === 'object')
   })
 })

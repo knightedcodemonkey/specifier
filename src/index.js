@@ -9,8 +9,7 @@ const makeError = (filename, msg, ctx) => {
     msg,
     filename,
     error: true,
-    syntaxError: Boolean(ctx),
-    errorContext: ctx,
+    syntaxError: ctx,
   }
 }
 const validateFilename = async (filename, path) => {

@@ -45,6 +45,8 @@ const code = await specifier.mapper('dist/index.js', {
 
 The order of the keys in the map object matters, the first match found will be used, so the most specific rule should be defined first. Additionally, you can substitute captured regex groups using numbered backreferences.
 
+You can also check out the [reference implementation](https://github.com/knightedcodemonkey/duel).
+
 ## `async specifier.update(filename, callback)`
 
 Updates specifiers in `filename` using the values returned from `callback`, and returns the updated file content. The callback is called for each specifier found, and the returned value is used to update the related specifier value. If the callback returns anything other than a string, the return value will be ignored and the specifier not updated.
@@ -70,8 +72,7 @@ interface UpdateError {
     error: boolean;
     msg: string;
     filename: string | undefined;
-    syntaxError: boolean;
-    errorContext: undefined | {
+    syntaxError: undefined | {
       code: string;
       reasonCode: string;
       pos: number;

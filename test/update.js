@@ -80,9 +80,9 @@ describe('update', () => {
     ret = await update('test/__fixtures__/syntaxError.js')
 
     assert.equal(ret.error, true)
-    assert.ok(typeof ret.errorContext.reasonCode === 'string')
-    assert.ok(Number.isFinite(ret.errorContext.pos))
-    assert.ok(ret.errorContext.loc !== null && typeof ret.errorContext.loc === 'object')
+    assert.ok(typeof ret.syntaxError.reasonCode === 'string')
+    assert.ok(Number.isFinite(ret.syntaxError.pos))
+    assert.ok(ret.syntaxError.loc !== null && typeof ret.syntaxError.loc === 'object')
   })
 
   it('works with typescript', async () => {
@@ -98,6 +98,14 @@ describe('update', () => {
 
     assert.ok(code.indexOf('./user.mjs') > -1)
     assert.ok(code.indexOf('./other-types.js') > -1)
+  })
+
+  it('works with jsx', async () => {
+    const code = await update(join(fixtures, 'jsx.jsx'), () => {
+      return './jsx.js'
+    })
+
+    assert.equal(code.match(/\.\/jsx\.js/g).length, 2)
   })
 
   it('wraps specifier.mapper if second arg is an object', async () => {
