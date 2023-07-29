@@ -44,7 +44,8 @@ describe('mapper', () => {
     ret = await mapper('test/__fixtures__/syntaxError.js')
 
     assert.equal(ret.error, true)
-    assert.equal(ret.syntaxError, true)
+    assert.equal(ret.syntaxError.reasonCode, 'UnterminatedString')
+    assert.ok(Number.isFinite(ret.syntaxError.pos))
 
     ret = await mapper('test/__fixtures__/mapper.js', {
       '(': './invalid-regex.js',
