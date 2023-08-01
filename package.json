@@ -1,7 +1,7 @@
 {
   "name": "@knighted/specifier",
-  "version": "1.0.0-alpha.7",
-  "description": "Node.js tool for updating your ESM specifiers, and CJS require strings.",
+  "version": "1.0.0-rc.0",
+  "description": "Node.js tool for updating your ESM and CJS specifiers.",
   "type": "module",
   "main": "dist",
   "exports": {
@@ -28,6 +28,7 @@
     "import",
     "export",
     "dynamic import",
+    "cjs",
     "require",
     "update",
     "mapper"
@@ -51,7 +52,7 @@
   },
   "devDependencies": {
     "@knighted/dump": "^1.0.2",
-    "babel-dual-package": "^1.0.0-rc.3",
+    "babel-dual-package": "^1.0.0",
     "c8": "^8.0.0",
     "eslint": "^8.45.0",
     "eslint-plugin-n": "^16.0.1",

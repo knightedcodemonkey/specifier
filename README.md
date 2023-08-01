@@ -54,7 +54,7 @@ Updates specifiers in `filename` using the values returned from `callback`, and 
 ### Signature
 
 ```ts
-type Update = (filename: string, callback: (spec: Specifier) => any) => Promise<string | UpdateError>;
+type Update = (filename: string, callback: (spec: Specifier) => string) => Promise<string | UpdateError>;
 ```
 
 Where the other types are defined as such.
@@ -98,19 +98,31 @@ Updates specifiers in `filename` using the provided `regexMap` object and return
 ### Signature
 
 ```ts
-type Mapper = (filename: string, regexMap: {[regex: string]: string}) => Promise<string | MapperError>;
+type Mapper = (filename: string, regexMap: {[regex: string]: string}) => Promise<string | UpdateError>;
 ```
 
-Where `MapperError` is an alias for `UpdateError` defined above. For the other definitions see [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
+Where `UpdateError` is the same from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
 
-## `async specifier.updateCode(code, callback, dts = false)`
+## `async specifier.updateSrc(code, callbackOrMap, opts)`
 
-Updates specifiers in source `code` using the values returned from `callback`, and returns the updated source code string. If the provided source `code` is from a TypeScript declaration file you should pass `true` for the last argument to support parsing of [ambient contexts](https://stackoverflow.com/a/61082185/258174) in `.d.ts`, `.d.mts`, and `.d.cts` files.
+Updates specifiers in source `code` using the values defined from `callbackOrMap`, and returns an object with the updated source code, and possibly a source map. See the `Update` interface below. If the provided source `code` is from a TypeScript declaration file you should pass `true` for `opts.dts` to support parsing of [ambient contexts](https://stackoverflow.com/a/61082185/258174). To generate a source map you can pass `true` for `opts.sourceMap`.
+
+```ts
+interface Opts {
+  dts: boolean;
+  sourceMap: boolean;
+}
+interface Update {
+  code: string;
+  sourceMap: MagicString.SourceMap;
+}
+type CallbackOrMap = (spec: Specifier) => string | {[regex: string]: string};
+```
 
 ### Signature
 
 ```ts
-type UpdateCode = (code: string, callback: (spec: Specifier) => any) => Promise<string | UpdateCodeError>;
+type UpdateSrc = (code: string, callbackOrMap: CallbackOrMap, opts: Opts) => Promise<Update | UpdateError>;
 ```
 
-Where `UpdateCodeError` is an alias for `UpdateError`. For the other definitions see [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
+Where `UpdateError` and `Specifier` have the same definition from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).

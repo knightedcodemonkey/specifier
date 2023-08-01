@@ -4,6 +4,7 @@ import { stat, readFile } from 'node:fs/promises'
 import { parse } from './parse.js'
 import { format } from './format.js'
 
+const updateSrcOpts = { dts: false, sourceMap: false }
 const makeError = (filename, msg, ctx) => {
   return {
     msg,
@@ -56,6 +57,25 @@ const getCodeAst = (code, dts = false) => {
     }
   }
 }
+const getConvertedMap = (map, filename) => {
+  const entries = Object.entries(map)
+  const mapped = []
+
+  for (const [key, value] of entries) {
+    try {
+      mapped.push([new RegExp(key), value])
+    } catch (err) {
+      return {
+        error: makeError(
+          filename,
+          `Could not create RegExp from provided map: ${err.message}`,
+        ),
+      }
+    }
+  }
+
+  return mapped
+}
 const specifier = {
   async update(path, callback) {
     if (callback !== null && typeof callback === 'object') {
@@ -80,13 +100,8 @@ const specifier = {
   },
 
   /**
-   * Some client might be part of a particular build's plugin system.
-   * This is here to support that use case, where the filename is not
-   * provided but rather the source code.
-   *
-   * @param {string} code The source code to update.
-   * @param {Function} callback The function provided the updated specifier value, if any.
-   * @param {Boolean} dts Whether to parse for TypeScript's ambient contexts.
+   * A less functional version of of `updateSrc`.
+   * You should use that instead.
    */
   async updateCode(code, callback, dts = false) {
     const ast = getCodeAst(code, dts)
@@ -96,6 +111,47 @@ const specifier = {
     }
 
     return format(code, ast, callback)
+  },
+
+  /**
+   * Useful for clients that are part of a plugin system
+   * where available build hooks provide the source code.
+   *
+   * @TODO Test whether Rollup/Vite works with Babel's AST,
+   * as their documentation says they only inspect start/end
+   * of a node, and I believe their bundles are derived from
+   * string manipulation via magic-string (not AST generated).
+   *
+   * @see https://github.com/rollup/rollup/issues/782#issuecomment-231721242
+   *
+   * @param {string} code The source code to update.
+   * @param {function | object} callbackOrMap The callback or map object used to update specifiers.
+   * @param {object} opts Options for parsing TS ambient context, or generating source maps.
+   * @returns Promise<{ updatedCode, sourceMap }>
+   */
+  async updateSrc(code, callbackOrMap, opts = updateSrcOpts) {
+    const options = { ...updateSrcOpts, ...opts }
+    const ast = getCodeAst(code, options.dts)
+
+    if (ast.error) {
+      return ast.error
+    }
+
+    const operator =
+      typeof callbackOrMap === 'object'
+        ? getConvertedMap(callbackOrMap, undefined)
+        : callbackOrMap
+
+    if (operator.error) {
+      return operator.error
+    }
+
+    const recoded = format(code, ast, operator, options.sourceMap)
+
+    return {
+      code: options.sourceMap ? recoded.toString() : recoded,
+      sourceMap: options.sourceMap ? recoded.generateMap() : undefined,
+    }
   },
 
   async mapper(path, map) {
@@ -113,18 +169,10 @@ const specifier = {
       return ast.error
     }
 
-    const entries = Object.entries(map)
-    const mapped = []
+    const mapped = getConvertedMap(map, filename)
 
-    for (const [key, value] of entries) {
-      try {
-        mapped.push([new RegExp(key), value])
-      } catch (err) {
-        return makeError(
-          filename,
-          `Could not create RegExp from provided map: ${err.message}`,
-        )
-      }
+    if (mapped.error) {
+      return mapped.error
     }
 
     return format(file, ast, mapped)
