@@ -86,7 +86,7 @@ describe('update', () => {
   })
 
   it('works with typescript', async () => {
-    const code = await update(join(fixtures, 'types.d.ts'), spec => {
+    let code = await update(join(fixtures, 'types.d.ts'), spec => {
       if (spec.value === './user') {
         return './user.mjs'
       }
@@ -98,6 +98,11 @@ describe('update', () => {
 
     assert.ok(code.indexOf('./user.mjs') > -1)
     assert.ok(code.indexOf('./other-types.js') > -1)
+
+    code = await update('test/__fixtures__/code.ts', () => {
+      return './types.js'
+    })
+    assert.ok(code.indexOf('./types.js') > -1)
   })
 
   it('works with jsx', async () => {

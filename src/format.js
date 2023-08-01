@@ -32,7 +32,7 @@ const update = (sourceNode, code, callbackOrMap) => {
     code.update(start + 1, end - 1, updated)
   }
 }
-const format = (file, ast, callbackOrMap) => {
+const format = (file, ast, callbackOrMap, asObject = false) => {
   const code = new MagicString(file)
 
   traverse(ast, {
@@ -105,7 +105,7 @@ const format = (file, ast, callbackOrMap) => {
     },
   })
 
-  return code.toString()
+  return asObject ? code : code.toString()
 }
 
 export { format }
