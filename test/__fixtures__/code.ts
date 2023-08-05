@@ -1,4 +1,4 @@
-import type { Match } from './types'
+import type { Match } from './types' assert { 'resolution-mode': 'import' }
 
 /**
  * Taken (mostly) from

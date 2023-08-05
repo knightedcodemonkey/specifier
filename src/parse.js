@@ -6,7 +6,11 @@ const parse = (source, dts = false) => {
     allowAwaitOutsideFunction: true,
     allowReturnOutsideFunction: true,
     allowImportExportEverywhere: true,
-    plugins: ['jsx', ['typescript', { dts }]],
+    plugins: [
+      'jsx',
+      ['importAttributes', { deprecatedAssertSyntax: true }],
+      ['typescript', { dts }],
+    ],
   })
 
   return ast

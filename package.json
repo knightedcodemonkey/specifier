@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.1",
   "description": "Node.js tool for updating your ESM and CJS specifiers.",
   "type": "module",
   "main": "dist",
@@ -25,13 +25,18 @@
   "keywords": [
     "specifier",
     "esm",
+    "cjs",
     "import",
     "export",
     "dynamic import",
-    "cjs",
     "require",
+    "javascript",
+    "typescript",
+    "jsx",
     "update",
-    "mapper"
+    "edit",
+    "change",
+    "map"
   ],
   "files": [
     "dist"
@@ -56,7 +61,7 @@
     "c8": "^8.0.0",
     "eslint": "^8.45.0",
     "eslint-plugin-n": "^16.0.1",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.1"
   },
   "prettier": {
     "arrowParens": "avoid",
