@@ -54,41 +54,41 @@ Updates specifiers in `filename` using the values returned from `callback`, and 
 ### Signature
 
 ```ts
-type Update = (filename: string, callback: (spec: Specifier) => string) => Promise<string | UpdateError>;
+type Update = (filename: string, callback: (spec: Spec) => string) => Promise<string | UpdateError>;
 ```
 
 Where the other types are defined as such.
 
 ```ts
 interface Position {
-  line: number;
-  column: number;
+  line: number
+  column: number
 }
 interface SourceLocation {
-  start: Position;
-  end: Position;
+  start: Position
+  end: Position
 }
 interface UpdateError {
-    error: boolean;
-    msg: string;
-    filename: string | undefined;
-    syntaxError: undefined | {
-      code: string;
-      reasonCode: string;
-      pos: number;
-      loc: Position;
-    }
+  error: boolean
+  msg: string
+  filename?: string
+  syntaxError?: {
+    code: string
+    reasonCode: string
+    pos: number
+    loc: Position
+  }
 }
-interface Specifier {
-    type: 'StringLiteral' | 'TemplateLiteral' | 'BinaryExpression' | 'NewExpression';
-    start: number;
-    end: number;
-    value: string;
-    loc: SourceLocation;
+interface Spec {
+  type: 'StringLiteral' | 'TemplateLiteral' | 'BinaryExpression' | 'NewExpression'
+  start: number
+  end: number
+  value: string
+  loc: SourceLocation
 }
 ```
 
-The `Specifier.value` will not include any surrounding quotes or backticks when the `type` is `StringLiteral` or `TemplateLiteral`, and the return value from `callback` is not expected to include them either.
+The `Spec.value` will not include any surrounding quotes or backticks when the `type` is `StringLiteral` or `TemplateLiteral`, and the return value from `callback` is not expected to include them either.
 
 
 ## `async specifier.mapper(filename, regexMap)`
@@ -109,20 +109,24 @@ Updates specifiers in source `code` using the values defined from `callbackOrMap
 
 ```ts
 interface Opts {
-  dts: boolean;
-  sourceMap: boolean;
+  dts?: boolean;
+  sourceMap?: boolean;
 }
 interface Update {
-  code: string;
-  sourceMap: MagicString.SourceMap;
+  code?: string
+  map?: MagicString.SourceMap | null
+  error?: UpdateError
 }
-type CallbackOrMap = (spec: Specifier) => string | {[regex: string]: string};
+interface RegexMap {
+  [regex: string]: string
+}
+type CallbackOrMap = (spec: Spec) => string
 ```
 
 ### Signature
 
 ```ts
-type UpdateSrc = (code: string, callbackOrMap: CallbackOrMap, opts: Opts) => Promise<Update | UpdateError>;
+type UpdateSrc = (code: string, callbackOrMap: Callback | RegexMap, opts?: Opts) => Promise<Update>;
 ```
 
-Where `UpdateError` and `Specifier` have the same definition from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
+Where `UpdateError` and `Spec` have the same definition from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).

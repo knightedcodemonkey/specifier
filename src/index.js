@@ -149,8 +149,8 @@ const specifier = {
     const recoded = format(code, ast, operator, options.sourceMap)
 
     return {
+      map: options.sourceMap ? recoded.generateMap({ hires: true }) : null,
       code: options.sourceMap ? recoded.toString() : recoded,
-      sourceMap: options.sourceMap ? recoded.generateMap() : undefined,
     }
   },
 

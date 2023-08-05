@@ -57,9 +57,9 @@ describe('updateSrc', () => {
     assert.ok(ret.msg.indexOf('Invalid regular expression') > -1)
   })
 
-  it('allows options to return a source map', async () => {
+  it('allows options to return source mappings', async () => {
     const source = (await readFile(join(fixtures, 'importDeclaration.js'))).toString()
-    const { code, sourceMap } = await updateSrc(
+    const { code, map } = await updateSrc(
       source,
       () => {
         return './source-maps.js'
@@ -68,6 +68,10 @@ describe('updateSrc', () => {
     )
 
     assert.ok(code.indexOf('./source-maps.js') > -1)
-    assert.ok(typeof sourceMap.mappings === 'string')
+    assert.ok(typeof map.mappings === 'string')
+
+    const { map: noMap } = await updateSrc(source, { '': '' }, { sourceMap: false })
+
+    assert.equal(noMap, null)
   })
 })
