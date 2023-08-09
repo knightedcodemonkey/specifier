@@ -22,13 +22,13 @@ The following script will update all specifiers in `dist/index.js` with an [AST 
 import { writeFile } from 'node:fs/promises'
 import { specifier } from '@knighted/specifier'
 
-const code = await specifier.update('dist/index.js', ({ type, value }) => {
+const { code, error } = await specifier.update('dist/index.js', ({ type, value }) => {
   if (type === 'StringLiteral') {
     return value.replace(/([^.]+)\.js$/, '$1.mjs')
   }
 })
 
-if (!code.error) {
+if (code && !error) {
   await writeFile('dist/index.mjs', code)
 }
 ```
@@ -38,7 +38,7 @@ You can also provide an object where the keys are regular expressions and the va
 The following does the same as before.
 
 ```js
-const code = await specifier.mapper('dist/index.js', {
+const { code, error } = await specifier.mapper('dist/index.js', {
   '([^.]+)\\.js$': '$1.mjs'
 })
 ```
@@ -54,12 +54,20 @@ Updates specifiers in `filename` using the values returned from `callback`, and 
 ### Signature
 
 ```ts
-type Update = (filename: string, callback: (spec: Spec) => string) => Promise<string | UpdateError>;
+(filename: string, callback: Callback) => Promise<Update>
 ```
 
 Where the other types are defined as such.
 
 ```ts
+type Callback = (spec: Spec) => string | undefined
+interface Spec {
+  type: 'StringLiteral' | 'TemplateLiteral' | 'BinaryExpression' | 'NewExpression'
+  start: number
+  end: number
+  value: string
+  loc: SourceLocation
+}
 interface Position {
   line: number
   column: number
@@ -68,6 +76,11 @@ interface SourceLocation {
   start: Position
   end: Position
 }
+interface Update {
+  code?: string
+  map?: SourceMap | null
+  error?: UpdateError
+}
 interface UpdateError {
   error: boolean
   msg: string
@@ -75,16 +88,7 @@ interface UpdateError {
   syntaxError?: {
     code: string
     reasonCode: string
-    pos: number
-    loc: Position
   }
-}
-interface Spec {
-  type: 'StringLiteral' | 'TemplateLiteral' | 'BinaryExpression' | 'NewExpression'
-  start: number
-  end: number
-  value: string
-  loc: SourceLocation
 }
 ```
 
@@ -98,35 +102,29 @@ Updates specifiers in `filename` using the provided `regexMap` object and return
 ### Signature
 
 ```ts
-type Mapper = (filename: string, regexMap: {[regex: string]: string}) => Promise<string | UpdateError>;
+(filename: string, regexMap: {[regex: string]: string}) => Promise<Update>
 ```
 
-Where `UpdateError` is the same from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
+Where `Update` is the same from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
 
 ## `async specifier.updateSrc(code, callbackOrMap, opts)`
 
-Updates specifiers in source `code` using the values defined from `callbackOrMap`, and returns an object with the updated source code, and possibly a source map. See the `Update` interface below. If the provided source `code` is from a TypeScript declaration file you should pass `true` for `opts.dts` to support parsing of [ambient contexts](https://stackoverflow.com/a/61082185/258174). To generate a source map you can pass `true` for `opts.sourceMap`.
+Updates specifiers in source `code` using the values defined from `callbackOrMap`, and returns an `Update` that includes a `map` if `opts.sourceMap` was passed. If the provided source `code` is from a TypeScript declaration file you should pass `true` for `opts.dts` to support parsing of [ambient contexts](https://stackoverflow.com/a/61082185/258174).
+
+### Signature
+
+```ts
+(code: string, callbackOrMap: Callback | RegexMap, opts?: Opts) => Promise<Update>
+```
 
 ```ts
 interface Opts {
   dts?: boolean;
   sourceMap?: boolean;
 }
-interface Update {
-  code?: string
-  map?: MagicString.SourceMap | null
-  error?: UpdateError
-}
 interface RegexMap {
   [regex: string]: string
 }
-type CallbackOrMap = (spec: Spec) => string
 ```
 
-### Signature
-
-```ts
-type UpdateSrc = (code: string, callbackOrMap: Callback | RegexMap, opts?: Opts) => Promise<Update>;
-```
-
-Where `UpdateError` and `Spec` have the same definition from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
+Where the other types have the same definition from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
