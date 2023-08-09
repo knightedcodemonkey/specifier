@@ -1,4 +1,4 @@
-import type { Match } from './types' assert { 'resolution-mode': 'import' }
+import type { Match } from './types.js' assert { 'resolution-mode': 'import' }
 
 /**
  * Taken (mostly) from
@@ -12,7 +12,7 @@ interface User {
 }
 
 class UserAccount {
-  match: Match;
+  match: Match = false;
   name: string;
   id: number;
 

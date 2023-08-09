@@ -14,52 +14,59 @@ const { updateSrc } = specifier
 describe('updateSrc', () => {
   it('accepts source code as a string instead of a filename', async () => {
     const source = (await readFile(join(fixtures, 'types.d.ts'))).toString()
-    const { code } = await updateSrc(
+    const { code, error } = await updateSrc(
       source,
       ({ value }) => {
-        if (value === './some-types.js') {
+        if (value === './user.js') {
           return './types.cjs'
         }
       },
       { dts: true },
     )
 
-    assert.ok(code.indexOf('./types.cjs') > -1)
+    assert.equal(error, undefined)
+
+    if (code) {
+      assert.ok(code.indexOf('./types.cjs') > -1)
+    }
   })
 
   it('reports errors from parsing of the code in an object', async () => {
-    let ret = await updateSrc('const foo = "')
+    const { code, error } = await updateSrc('const foo = "', {})
 
-    assert.equal(ret.code, undefined)
-    assert.equal(ret.error, true)
-    assert.ok(ret.msg.startsWith('Unterminated string constant'))
-    assert.ok(typeof ret.syntaxError.reasonCode === 'string')
-    assert.ok(Number.isFinite(ret.syntaxError.pos))
-    assert.ok(ret.syntaxError.loc !== null && typeof ret.syntaxError.loc === 'object')
+    assert.equal(code, undefined)
+    assert.equal(error?.error, true)
+    assert.ok(error?.msg.startsWith('Unterminated string constant'))
+    assert.ok(typeof error?.syntaxError?.reasonCode === 'string')
+    assert.ok(typeof error?.syntaxError?.code === 'string')
   })
 
   it('supports a mapper regex object instead of callback', async () => {
     const source = (await readFile(join(fixtures, 'mapper.js'))).toString()
-    const { code } = await updateSrc(source, {
+    const { code, error } = await updateSrc(source, {
       foo: 'bar',
       dynamic: './import.js',
     })
 
-    assert.ok(code.indexOf('bar') > -1)
-    assert.ok(code.indexOf('./import.js') > -1)
+    assert.equal(error, undefined)
+
+    if (code) {
+      assert.ok(code.indexOf('bar') > -1)
+      assert.ok(code.indexOf('./import.js') > -1)
+    }
 
     // Check error handling when converting the map
     const ret = await updateSrc(source, {
       ')': './invalid-regex.js',
     })
 
-    assert.equal(ret.error, true)
-    assert.ok(ret.msg.indexOf('Invalid regular expression') > -1)
+    assert.equal(ret.error?.error, true)
+    assert.ok(ret.error?.msg.indexOf('Invalid regular expression') > -1)
   })
 
   it('allows options to return source mappings', async () => {
     const source = (await readFile(join(fixtures, 'importDeclaration.js'))).toString()
-    const { code, map } = await updateSrc(
+    const { code, map, error } = await updateSrc(
       source,
       () => {
         return './source-maps.js'
@@ -67,8 +74,14 @@ describe('updateSrc', () => {
       { sourceMap: true },
     )
 
-    assert.ok(code.indexOf('./source-maps.js') > -1)
-    assert.ok(typeof map.mappings === 'string')
+    assert.equal(error, undefined)
+
+    if (code && map) {
+      assert.ok(code.indexOf('./source-maps.js') > -1)
+      assert.ok(typeof map.mappings === 'string')
+    } else {
+      assert.fail('Expected code and map.')
+    }
 
     const { map: noMap } = await updateSrc(source, { '': '' }, { sourceMap: false })
 

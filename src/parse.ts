@@ -1,6 +1,6 @@
 import { parse as babelParse } from '@babel/parser'
 
-const parse = (source, dts = false) => {
+const parse = (source: string, dts = false) => {
   const ast = babelParse(source, {
     sourceType: 'module',
     allowAwaitOutsideFunction: true,
