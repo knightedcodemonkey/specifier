@@ -1,5 +1,5 @@
 {
-  "targets": "node >= 14.0",
+  "targets": "node >= 14",
   "comments": false,
   "presets": [
     ["@babel/preset-env", {

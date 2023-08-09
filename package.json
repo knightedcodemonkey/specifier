@@ -20,7 +20,7 @@
   },
   "types": "./dist/index.d.cts",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=14"
   },
   "scripts": {
     "prettier": "prettier -w src/*.ts test/*.ts",
