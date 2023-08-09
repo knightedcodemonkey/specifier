@@ -73,7 +73,24 @@ interface Specifier {
     opts?: Opts,
   ) => Promise<Update>
 }
+interface AnError {
+  error: Error
+}
 
+const anError = (error: unknown) => {
+  if (error instanceof Error) {
+    return { error }
+  }
+
+  return { error: new Error(`An unexpected error occured: ${error}`) }
+}
+const isAnError = (x: unknown): x is AnError => {
+  if (x && typeof x === 'object' && 'error' in x) {
+    return true
+  }
+
+  return false
+}
 const updateSrcOpts = { dts: false, sourceMap: false }
 const makeError = (
   msg: string,
@@ -108,11 +125,7 @@ const getAst = (file: string, filename: string) => {
       ast: parse(file, /\.d\.[mc]?ts$/.test(filename)),
     }
   } catch (error) {
-    if (error instanceof Error) {
-      return { error }
-    }
-
-    return { error: new Error(`An unexpected error occured: ${error}`) }
+    return anError(error)
   }
 }
 const getCodeAst = (code: string, dts = false) => {
@@ -121,13 +134,7 @@ const getCodeAst = (code: string, dts = false) => {
       ast: parse(code, dts),
     }
   } catch (error) {
-    if (error instanceof Error) {
-      return { error }
-    }
-
-    return {
-      error: new Error(`An unexpected error occured: ${error}`),
-    }
+    return anError(error)
   }
 }
 const getConvertedMap = (map: RegexMap) => {
@@ -138,13 +145,7 @@ const getConvertedMap = (map: RegexMap) => {
     try {
       mapped.push([new RegExp(key), value])
     } catch (error) {
-      if (error instanceof Error) {
-        return { error }
-      }
-
-      return {
-        error: new Error(`An unexpected error occured: ${error}`),
-      }
+      return anError(error)
     }
   }
 
@@ -182,14 +183,14 @@ const specifier = {
     }
 
     const file = (await readFile(filename)).toString()
-    const { ast, error } = getAst(file, filename)
+    const ret = getAst(file, filename)
 
-    if (error) {
-      return getAstError(error, filename)
+    if (isAnError(ret)) {
+      return getAstError(ret.error, filename)
     }
 
     return {
-      code: format(file, ast, callbackOrMap).toString(),
+      code: format(file, ret.ast, callbackOrMap).toString(),
     }
   },
 
@@ -199,7 +200,7 @@ const specifier = {
     opts: Opts = updateSrcOpts,
   ): Promise<Update> {
     const options = { ...updateSrcOpts, ...opts }
-    const { ast, error } = getCodeAst(code, options.dts)
+    const res = getCodeAst(code, options.dts)
     const getUpdate = (magic: MagicString) => {
       return {
         code: magic.toString(),
@@ -207,23 +208,23 @@ const specifier = {
       }
     }
 
-    if (error) {
-      return getAstError(error)
+    if (isAnError(res)) {
+      return getAstError(res.error)
     }
 
     if (typeof callbackOrMap === 'function') {
-      return getUpdate(format(code, ast, callbackOrMap))
+      return getUpdate(format(code, res.ast, callbackOrMap))
     }
 
     const ret = getConvertedMap(callbackOrMap)
 
-    if (ret.error) {
+    if (isAnError(ret)) {
       return {
         error: makeError(ret.error.message),
       }
     }
 
-    return getUpdate(format(code, ast, ret.mapped))
+    return getUpdate(format(code, res.ast, ret.mapped))
   },
 
   async mapper(path: string, map: RegexMap): Promise<Update> {
@@ -240,22 +241,22 @@ const specifier = {
     }
 
     const file = (await readFile(filename)).toString()
-    const { ast, error } = getAst(file, filename)
+    const res = getAst(file, filename)
 
-    if (error) {
-      return getAstError(error, filename)
+    if (isAnError(res)) {
+      return getAstError(res.error, filename)
     }
 
     const ret = getConvertedMap(map)
 
-    if (ret.error) {
+    if (isAnError(ret)) {
       return {
         error: makeError(ret.error.message, filename),
       }
     }
 
     return {
-      code: format(file, ast, ret.mapped).toString(),
+      code: format(file, res.ast, ret.mapped).toString(),
     }
   },
 }

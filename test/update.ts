@@ -94,7 +94,7 @@ describe('update', () => {
   })
 
   it('returns an object when errors happen', async () => {
-    let ret = await specifier.update('/foo', {})
+    let ret = await specifier.update('/foo', () => '')
 
     assert.equal(ret.error?.error, true)
     assert.equal(
@@ -110,7 +110,7 @@ describe('update', () => {
       'The provided path test/__fixtures__ does not resolve to a file on disk.',
     )
 
-    ret = await specifier.update('test/__fixtures__/syntaxError.js', {})
+    ret = await specifier.update('test/__fixtures__/syntaxError.js', () => '')
 
     assert.equal(ret.error?.error, true)
     assert.ok(typeof ret.error?.syntaxError?.reasonCode === 'string')
