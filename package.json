@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "1.0.0-rc.3",
+  "version": "1.0.0-rc.4",
   "description": "Node.js tool for updating your ESM and CJS specifiers.",
   "type": "module",
   "main": "dist",
@@ -28,6 +28,7 @@
     "test": "c8 --reporter=text --reporter=text-summary --reporter=lcov node --no-warnings --loader tsx --test --test-reporter=spec test/*.ts",
     "build:types": "tsc --emitDeclarationOnly",
     "build:dual": "babel-dual-package src --copy-files --no-cjs-dir --extensions .ts",
+    "prebuild": "rm -rf ./dist",
     "build": "npm run build:types && npm run build:dual",
     "prepack": "npm run build"
   },
@@ -73,7 +74,7 @@
     "@types/node": "^20.4.8",
     "@typescript-eslint/eslint-plugin": "^6.3.0",
     "@typescript-eslint/parser": "^6.3.0",
-    "babel-dual-package": "^1.0.0",
+    "babel-dual-package": "^1.1.1",
     "c8": "^8.0.0",
     "eslint": "^8.45.0",
     "eslint-import-resolver-typescript": "^3.5.5",
