@@ -1,13 +1,14 @@
 import { resolve } from 'node:path'
 import { stat, readFile } from 'node:fs/promises'
 
+import MagicString from 'magic-string'
+
 import { parse } from './parse.js'
 import { format } from './format.js'
 
 import type { Stats } from 'node:fs'
 import type { ParseError } from '@babel/parser'
 import type { SourceMap } from 'magic-string'
-import MagicString from 'magic-string'
 
 interface Position {
   line: number
