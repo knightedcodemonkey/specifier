@@ -15,7 +15,6 @@ import type {
   TemplateLiteral,
 } from '@babel/types'
 import type { NodePath } from '@babel/traverse'
-
 import type { Callback, Spec } from './index.js'
 
 type Mapped = [RegExp, string][]

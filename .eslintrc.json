@@ -23,6 +23,13 @@
     }
   },
   "rules": {
-    "no-console": "error"
+    "no-console": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal", "index", "sibling", "parent", "type"],
+        "newlines-between": "always"
+      }
+    ]
   }
 }
