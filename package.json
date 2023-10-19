@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@babel/parser": "^7.22.7",
-    "@babel/traverse": "^7.22.8",
+    "@babel/traverse": "^7.23.2",
     "magic-string": "^0.30.1"
   },
   "devDependencies": {
@@ -74,7 +74,7 @@
     "@types/node": "^20.4.8",
     "@typescript-eslint/eslint-plugin": "^6.3.0",
     "@typescript-eslint/parser": "^6.3.0",
-    "babel-dual-package": "^1.1.1",
+    "babel-dual-package": "^1.1.2",
     "c8": "^8.0.0",
     "eslint": "^8.45.0",
     "eslint-import-resolver-typescript": "^3.5.5",
