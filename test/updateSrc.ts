@@ -87,4 +87,36 @@ describe('updateSrc', () => {
 
     assert.equal(noMap, null)
   })
+
+  it('supports adding extensions to specifiers', async () => {
+    const { code, error } = await updateSrc(
+      `
+      import foo from './bar'
+      import { baz } from '../qux/quux'
+
+      const str: string = 'string'
+
+      interface Props {
+        size: 'small' | 'medium' | 'large'
+      }
+
+      import('./dynamic/thing')
+    `,
+      ({ value }) => {
+        const relative = /^(?:\.|\.\.)\//
+
+        if (relative.test(value) && !value.endsWith('.js')) {
+          return value.replace(/(.+)/, '$1.js')
+        }
+      },
+    )
+
+    assert.equal(error, undefined)
+
+    if (code) {
+      assert.ok(code.indexOf('./bar.js') > -1)
+      assert.ok(code.indexOf('../qux/quux.js') > -1)
+      assert.ok(code.indexOf('./dynamic/thing.js') > -1)
+    }
+  })
 })
