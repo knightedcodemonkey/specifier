@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - so-62619058
   pull_request:
     branches:
       - main
