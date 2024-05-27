@@ -128,3 +128,15 @@ interface RegexMap {
 ```
 
 Where the other types have the same definition from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
+
+## `async specifier.updateAst(ast, code, callback)`
+
+Updates specifiers in a Babel AST with source `code` using the value returned from `callback`, and returns an `Update`.
+
+### Signature
+
+```ts
+(ast: ParseResult<File>, code: string, callback: Callback) => Promise<Update>
+```
+
+Where the other types have the same definition from [`specifier.update`](https://github.com/knightedcodemonkey/specifier#async-specifierupdatefilename-callback).
