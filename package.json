@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "2.0.0",
+  "version": "2.0.0-rc.0",
   "description": "Node.js tool for updating your ES module and CommonJS specifiers.",
   "type": "module",
   "main": "dist",
@@ -22,6 +22,7 @@
   "engines": {
     "node": ">=20"
   },
+  "engineStrict": true,
   "scripts": {
     "prettier": "prettier -w src/*.ts test/*.ts",
     "lint": "eslint --ignore-pattern dist --ignore-pattern test/__fixtures__/syntaxError.js .",
