@@ -7,7 +7,8 @@ import { parse } from './parse.js'
 import { format } from './format.js'
 
 import type { Stats } from 'node:fs'
-import type { ParseError } from '@babel/parser'
+import type { ParseError, ParseResult } from '@babel/parser'
+import type { File } from '@babel/types'
 import type { SourceMap } from 'magic-string'
 
 interface Position {
@@ -73,6 +74,7 @@ interface Specifier {
     callbackOrMap: Callback | RegexMap,
     opts?: Opts,
   ) => Promise<Update>
+  updateAst: (ast: ParseResult<File>, code: string, callback: Callback) => Promise<Update>
 }
 interface AnError {
   error: Error
@@ -226,6 +228,16 @@ const specifier = {
     }
 
     return getUpdate(format(code, res.ast, ret.mapped))
+  },
+
+  async updateAst(
+    ast: ParseResult<File>,
+    code: string,
+    callback: Callback,
+  ): Promise<Update> {
+    return {
+      code: format(code, ast, callback).toString(),
+    }
   },
 
   async mapper(path: string, map: RegexMap): Promise<Update> {
