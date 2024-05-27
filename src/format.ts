@@ -80,9 +80,29 @@ const format = (
     CallExpression({ node }: NodePath<CallExpression>) {
       const { callee } = node
 
+      /**
+       * Check for:
+       *
+       * import()
+       * require()
+       * require.resolve()
+       * import.meta.resolve()
+       *
+       * Omitted:
+       * const require = createRequire(import.meta.url)
+       */
       if (
         callee.type === 'Import' ||
-        (callee.type === 'Identifier' && callee.name === 'require')
+        (callee.type === 'Identifier' && callee.name === 'require') ||
+        (callee.type === 'MemberExpression' &&
+          callee.object.type === 'Identifier' &&
+          callee.object.name === 'require' &&
+          callee.property.type === 'Identifier' &&
+          callee.property.name === 'resolve') ||
+        (callee.type === 'MemberExpression' &&
+          callee.object.type === 'MetaProperty' &&
+          callee.property.type === 'Identifier' &&
+          callee.property.name === 'resolve')
       ) {
         const source = node.arguments[0] as DynamicImportOrRequireArg
         const { type, start, end, loc } = source

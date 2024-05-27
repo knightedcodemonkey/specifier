@@ -25,4 +25,26 @@ describe('updateAst', () => {
       assert.ok(code.indexOf('./ast-test.js') > -1)
     }
   })
+
+  it('updates resolve from different module types', async () => {
+    const source = (await readFile(join(fixtures, 'modules.js'))).toString()
+    const ast = parse(source)
+    const { code, error } = await updateAst(ast, source, ({ value }) => {
+      if (value === './require/file.js') {
+        return './require-test.js'
+      }
+
+      if (value === './meta/file.js') {
+        return './meta-test.js'
+      }
+    })
+
+    assert.equal(error, undefined)
+
+    if (code) {
+      assert.ok(code.indexOf('./require-test.js') > -1)
+      assert.ok(code.indexOf('./meta-test.js') > -1)
+      assert.ok(code.indexOf('./skip/file.js') > -1)
+    }
+  })
 })
