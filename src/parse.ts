@@ -1,19 +1,7 @@
-import { parse as babelParse } from '@babel/parser'
+import { parseSync } from 'oxc-parser'
 
-const parse = (source: string, dts = false) => {
-  const ast = babelParse(source, {
-    sourceType: 'module',
-    allowAwaitOutsideFunction: true,
-    allowReturnOutsideFunction: true,
-    allowImportExportEverywhere: true,
-    plugins: [
-      'jsx',
-      ['importAttributes', { deprecatedAssertSyntax: true }],
-      ['typescript', { dts }],
-    ],
-  })
-
-  return ast
+const parse = (filename: string, source: string) => {
+  return parseSync(filename, source)
 }
 
 export { parse }

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve, join } from 'node:path'
 
-import { specifier } from '../src/index.js'
+import { specifier } from '../src/specifier.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -14,36 +14,28 @@ describe('update', () => {
     const update = await specifier.update(
       join(fixtures, 'importDeclaration.js'),
       spec => {
-        return spec.value.replace(/(.+)\.js$/, '$1.mjs')
+        return spec.value.replace(/^\.(.+)\.js$/, '.$1.mjs')
       },
     )
 
-    assert.ok(update.error === undefined)
-
-    if (update.code) {
-      assert.ok(update.code.indexOf('./path/to/module.mjs') > -1)
-    }
+    assert.ok(update.indexOf('./path/to/module.mjs') > -1)
   })
 
-  it('updates specifiers in export named declrations', async () => {
-    const { code, error } = await specifier.update(
+  it('updates specifiers in export named declarations', async () => {
+    const update = await specifier.update(
       join(fixtures, 'exportNamedDeclaration.js'),
       spec => {
-        if (spec.loc.start.line === 2) {
+        if (spec.value === './path/to/module.js') {
           return './other-module.js'
         }
       },
     )
 
-    assert.equal(error, undefined)
-
-    if (code) {
-      assert.ok(code.indexOf('./other-module.js') > -1)
-    }
+    assert.ok(update.indexOf('./other-module.js') > -1)
   })
 
   it('updates specifiers in export all declarations', async () => {
-    const { code, error } = await specifier.update(
+    const update = await specifier.update(
       join(fixtures, 'exportAllDeclaration.js'),
       spec => {
         if (spec.value.indexOf('other') > -1) {
@@ -54,12 +46,8 @@ describe('update', () => {
       },
     )
 
-    assert.equal(error, undefined)
-
-    if (code) {
-      assert.ok(code.indexOf('./path/to/module.cjs') > -1)
-      assert.ok(code.indexOf('./other.cjs') > -1)
-    }
+    assert.ok(update.indexOf('./path/to/module.cjs') > -1)
+    assert.ok(update.indexOf('./other.cjs') > -1)
   })
 
   it('updates specifiers in import expressions', async () => {
@@ -67,53 +55,23 @@ describe('update', () => {
     const be = "'./module.cjs'"
     const ne = 'new String("foo")'
     const tl = './foo/${bar}.mjs'
-    const { code, error } = await specifier.update(
-      join(fixtures, 'importExpression.js'),
-      spec => {
-        switch (spec.type) {
-          case 'StringLiteral':
-            return lit
-          case 'BinaryExpression':
-            return be
-          case 'NewExpression':
-            return ne
-          case 'TemplateLiteral':
-            return tl
-        }
-      },
-    )
+    const update = await specifier.update(join(fixtures, 'importExpression.js'), spec => {
+      switch (spec.type) {
+        case 'StringLiteral':
+          return lit
+        case 'BinaryExpression':
+          return be
+        case 'NewExpression':
+          return ne
+        case 'TemplateLiteral':
+          return tl
+      }
+    })
 
-    assert.equal(error, undefined)
-
-    if (code) {
-      assert.ok(code.indexOf(lit) > -1)
-      assert.ok(code.indexOf(be) > -1)
-      assert.ok(code.indexOf(ne) > -1)
-      assert.ok(code.indexOf(tl) > -1)
-    }
-  })
-
-  it('returns an object when errors happen', async () => {
-    let ret = await specifier.update('/foo', () => '')
-
-    assert.equal(ret.error?.error, true)
-    assert.equal(
-      ret.error?.msg,
-      'The provided path /foo does not resolve to a file on disk.',
-    )
-
-    ret = await specifier.update('test/__fixtures__', {})
-
-    assert.equal(ret.error?.error, true)
-    assert.equal(
-      ret.error?.msg,
-      'The provided path test/__fixtures__ does not resolve to a file on disk.',
-    )
-
-    ret = await specifier.update('test/__fixtures__/syntaxError.js', () => '')
-
-    assert.equal(ret.error?.error, true)
-    assert.ok(typeof ret.error?.syntaxError?.reasonCode === 'string')
+    assert.ok(update.indexOf(lit) > -1)
+    assert.ok(update.indexOf(be) > -1)
+    assert.ok(update.indexOf(ne) > -1)
+    assert.ok(update.indexOf(tl) > -1)
   })
 
   it('works with typescript', async () => {
@@ -123,46 +81,23 @@ describe('update', () => {
       }
     })
 
-    assert.equal(update.error, undefined)
-
-    if (update.code) {
-      assert.ok(update.code.match(/\.\/user\.mjs/g)?.length === 2)
-    }
-
-    update = await specifier.update('test/__fixtures__/code.ts', () => {
+    assert.ok(update.match(/\.\/user\.mjs/g)?.length === 2)
+    update = await specifier.update(join(fixtures, 'code.ts'), () => {
       return './types.js'
     })
-
-    assert.equal(update.error, undefined)
-    assert.ok(update.code?.indexOf('./types.js') ?? 1 > -1)
+    assert.ok(update.indexOf('./types.js') ?? 1 > -1)
   })
 
   it('works with jsx', async () => {
-    const { code, error } = await specifier.update(join(fixtures, 'jsx.jsx'), () => {
+    const update = await specifier.update(join(fixtures, 'jsx.jsx'), () => {
       return './jsx.js'
     })
 
-    assert.equal(error, undefined)
-
-    if (code) {
-      assert.equal(code.match(/\.\/jsx\.js/g)?.length, 2)
-    }
-  })
-
-  it('wraps specifier.mapper if second arg is an object', async () => {
-    const { code, error } = await specifier.update(
-      join(fixtures, 'importDeclaration.js'),
-      {
-        '([^.]+)\\.js$': '$1.cjs',
-      },
-    )
-
-    assert.equal(error, undefined)
-    assert.ok(code?.indexOf('./path/to/module.cjs') ?? 1 > -1)
+    assert.equal(update.match(/\.\/jsx\.js/g)?.length, 2)
   })
 
   it('updates id strings in require expressions', async () => {
-    const { code, error } = await specifier.update(join(fixtures, 'require.js'), spec => {
+    const update = await specifier.update(join(fixtures, 'require.js'), spec => {
       // Collapse any BinaryExpression or NewExpression first
       const collapsed = spec.value.replace(/['"`+)\s]|new String\(/g, '')
       const relativeIdRegex = /^(?:\.|\.\.)\//i
@@ -173,15 +108,45 @@ describe('update', () => {
       }
     })
 
-    assert.equal(error, undefined)
+    assert.ok(update.indexOf('require("./folder/module.cjs")') > -1)
+    assert.ok(update.indexOf("require(new String('./foo.cjs'))") > -1)
+    assert.ok(update.indexOf('require(`./template/${string}.cjs`)') > -1)
+    assert.ok(update.indexOf("require('./binary' + '/expression.cjs')") > -1)
+    // Check that .mjs was left alone
+    assert.ok(update.indexOf('require("./esm.mjs")') > -1)
+  })
 
-    if (code) {
-      assert.ok(code.indexOf('require("./folder/module.cjs")') > -1)
-      assert.ok(code.indexOf("require(new String('./foo.cjs'))") > -1)
-      assert.ok(code.indexOf('require(`./template/${string}.cjs`)') > -1)
-      assert.ok(code.indexOf("require('./binary' + '/expression.cjs')") > -1)
-      // Check that .mjs was left alone
-      assert.ok(code.indexOf('require("./esm.mjs")') > -1)
-    }
+  it('updates `resolve` from different module types', async () => {
+    const update = await specifier.update(join(fixtures, 'modules.js'), ({ value }) => {
+      if (value === './require/file.js') {
+        return './require-test.js'
+      }
+
+      if (value === './meta/file.js') {
+        return './meta-test.js'
+      }
+
+      if (value === './skip/file.js') {
+        throw new Error('should have skipped this')
+      }
+    })
+
+    assert.ok(update.indexOf('./require-test.js') > -1)
+    assert.ok(update.indexOf('./meta-test.js') > -1)
+  })
+
+  it('throws an error if the file does not exist', async () => {
+    await assert.rejects(
+      () => specifier.update(join(fixtures, 'does-not-exist.js'), () => {}),
+      {
+        message: /The provided path .+ does not resolve to a file on disk\./,
+      },
+    )
+  })
+
+  it('throws an error if the file is a directory', async () => {
+    await assert.rejects(() => specifier.update(fixtures, () => {}), {
+      message: /The provided path .+ does not resolve to a file on disk\./,
+    })
   })
 })
