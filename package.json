@@ -1,24 +1,24 @@
 {
   "name": "@knighted/specifier",
-  "version": "2.0.0-rc.3",
+  "version": "2.0.0-rc.4",
   "description": "Node.js tool for updating your ES module and CommonJS specifiers.",
   "type": "module",
   "main": "dist",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types.d.ts",
+        "types": "./dist/specifier.d.ts",
         "default": "./dist/specifier.js"
       },
       "require": {
-        "types": "./dist/types.d.cts",
+        "types": "./dist/specifier.d.cts",
         "default": "./dist/specifier.cjs"
       },
       "default": "./dist/specifier.js"
     },
     "./package.json": "./package.json"
   },
-  "types": "./dist/types.d.cts",
+  "types": "./dist/specifier.d.cts",
   "engines": {
     "node": ">=20"
   },
@@ -35,22 +35,11 @@
     "prepack": "npm run build"
   },
   "keywords": [
-    "specifier",
-    "es module",
-    "commonjs",
+    "parse imports",
+    "parse exports",
+    "rewrite specifiers",
     "esm",
-    "cjs",
-    "import",
-    "export",
-    "dynamic import",
-    "require",
-    "javascript",
-    "typescript",
-    "jsx",
-    "update",
-    "edit",
-    "change",
-    "map"
+    "cjs"
   ],
   "files": [
     "dist"
