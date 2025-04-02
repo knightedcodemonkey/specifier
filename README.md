@@ -50,7 +50,7 @@ export { bar } from './path/to/bar.mjs'
 Or collect the AST nodes:
 
 ```ts
-import type { Spec } from '@knighted/specifier'
+import { type Spec, specifier } from '@knighted/specifier'
 
 const nodes: { node: Spec['node']; parent: Spec['parent'] }[] = []
 
