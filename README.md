@@ -54,7 +54,7 @@ import type { Spec } from '@knighted/specifier'
 
 const nodes: { node: Spec['node']; parent: Spec['parent'] }[] = []
 
-await specifier.update(resolve('file.ts'), ({ parent }) => {
+await specifier.update(resolve('file.ts'), ({ parent, node }) => {
   nodes.push({ node, parent })
 })
 
