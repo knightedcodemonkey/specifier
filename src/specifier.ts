@@ -64,3 +64,4 @@ const specifier = {
 
 export { specifier }
 export type { Specifier }
+export type { Spec } from './types.js'

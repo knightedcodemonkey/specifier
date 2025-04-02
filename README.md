@@ -6,52 +6,59 @@
 
 Node.js tool for updating your ESM and CJS [specifiers](https://nodejs.org/api/esm.html#import-specifiers).
 
-- Change, add or remove specifier extensions.
-- Completely rewrite specifier values.
-- Read metadata about a specifiers [AST](https://www.npmjs.com/package/oxc-parser) node.
-- Update files or strings.
+- Rewrite specifier values.
+- Updates files or strings.
+- Read metadata about a specifier's [AST](https://www.npmjs.com/package/oxc-parser) node.
 
 ## Example
 
-Consider a file with some relative imports and exports:
+Given a file with some imports and exports:
 
 ```ts
 // file.ts
 
 import { someLib } from 'some-package'
 import { foo } from './path/to/foo.js'
-import { bar } from './path/to/bar.js'
 
-export { baz } from './path/to/baz.js'
+export { bar } from './path/to/bar.js'
 ```
 
-You can use `specifier` to change the import extensions to `.mjs`:
+You can use `specifier` to change the values:
 
 ```ts
-import { resolve } from 'node:path'
 import { writeFile } from 'node:fs/promises'
 import { specifier } from '@knighted/specifier'
 
-// The callback is called for every specifier found
-const update = await specifier.update(resolve('file.ts'), ({ value }) => {
-  return value.replace(/^\.(.+)\.js$/, '.$1.mjs')
+const update = await specifier.update('file.ts', ({ value }) => {
+  if (value === 'some-package') {
+    return 'some-package/esm'
+  }
+
+  return value.replace('.js', '.mjs')
 })
 
-await writeFile('file.mts', update)
+console.log(update)
+
+/*
+import { someLib } from 'some-package/esm'
+import { foo } from './path/to/foo.mjs'
+
+export { bar } from './path/to/bar.mjs'
+*/
 ```
 
-You can collect all the parent AST nodes in an array:
+Or collect the AST nodes:
 
 ```ts
 import type { Spec } from '@knighted/specifier'
 
-const parents: Spec['parent'][] = []
+const nodes: { node: Spec['node']; parent: Spec['parent'] }[] = []
 
 await specifier.update(resolve('file.ts'), ({ parent }) => {
-  parents.push(parent)
+  nodes.push({ node, parent })
 })
 
-parents.forEach(parent => {
+nodes.forEach(({ node, parent }) => {
   // Do something with the metadata
 })
 ```
