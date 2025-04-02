@@ -21,7 +21,7 @@ const isBinaryExpression = (node: Node): node is BinaryExpression => {
 const isCallExpression = (node: Node): node is CallExpression => {
   return node.type === 'CallExpression' && node.callee !== undefined
 }
-const format = (src: string, ast: ParseResult, cb: Callback) => {
+const format = async (src: string, ast: ParseResult, cb: Callback) => {
   const code = new MagicString(src)
   const formatExpression = (expression: ImportExpression | CallExpression) => {
     /**
@@ -110,7 +110,7 @@ const format = (src: string, ast: ParseResult, cb: Callback) => {
     }
   }
 
-  walk(ast.program, {
+  await walk(ast.program, {
     enter(node) {
       if (node.type === 'ExpressionStatement') {
         const { expression } = node
