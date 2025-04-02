@@ -44,7 +44,7 @@ const specifier = {
     const src = (await readFile(filename)).toString()
     const ast = parse(filename, src)
 
-    return format(src, ast, callback)
+    return await format(src, ast, callback)
   },
 
   async updateSrc(src: string, lang: ParserOptions['lang'], callback: Callback) {
@@ -58,7 +58,7 @@ const specifier = {
             : 'file.jsx'
     const ast = parse(filename, src)
 
-    return format(src, ast, callback)
+    return await format(src, ast, callback)
   },
 } satisfies Specifier
 

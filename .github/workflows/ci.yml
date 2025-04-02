@@ -27,6 +27,8 @@ jobs:
         with:
           name: npm-debug-log-${{ hashFiles('package-lock.json') }}
           path: npm-debug.log
+      - name: Types
+        run: npm run check-types
       - name: Lint
         run: npm run lint
       - name: Test
