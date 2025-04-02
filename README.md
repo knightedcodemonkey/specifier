@@ -4,11 +4,12 @@
 [![codecov](https://codecov.io/gh/knightedcodemonkey/specifier/branch/main/graph/badge.svg?token=5KS9ZB3XDK)](https://codecov.io/gh/knightedcodemonkey/specifier)
 [![NPM version](https://img.shields.io/npm/v/@knighted/specifier.svg)](https://www.npmjs.com/package/@knighted/specifier)
 
-Node.js tool for updating your ESM and CJS [specifiers](https://nodejs.org/api/esm.html#import-specifiers).
+Node.js tool for parsing imports to change ESM and CJS [specifiers](https://nodejs.org/api/esm.html#import-specifiers).
 
 - Rewrite specifier values.
 - Updates files or strings.
 - Read metadata about a specifier's [AST](https://www.npmjs.com/package/oxc-parser) node.
+- Parses `import`, `import()`, `import.meta.resolve()`, `export`, `require`, and `require.resolve()`.
 
 ## Example
 
@@ -26,7 +27,6 @@ export { bar } from './path/to/bar.js'
 You can use `specifier` to change the values:
 
 ```ts
-import { writeFile } from 'node:fs/promises'
 import { specifier } from '@knighted/specifier'
 
 const update = await specifier.update('file.ts', ({ value }) => {
