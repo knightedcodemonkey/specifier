@@ -74,6 +74,24 @@ describe('update', () => {
     assert.ok(update.indexOf(tl) > -1)
   })
 
+  it('updates complex import expressions', async () => {
+    const update = await specifier.update(
+      join(fixtures, 'complexImportExpression.ts'),
+      spec => {
+        if (spec.value === './user.js') {
+          return './other-user.js'
+        }
+
+        if (spec.value === './code.js') {
+          return './other-code.js'
+        }
+      },
+    )
+
+    assert.ok(update.indexOf('./other-user.js') > -1)
+    assert.equal([...update.matchAll(/other-code\.js/g)].length, 3)
+  })
+
   it('works with typescript', async () => {
     let update = await specifier.update(join(fixtures, 'types.d.ts'), spec => {
       if (spec.value === './user.js') {
@@ -114,6 +132,21 @@ describe('update', () => {
     assert.ok(update.indexOf("require('./binary' + '/expression.cjs')") > -1)
     // Check that .mjs was left alone
     assert.ok(update.indexOf('require("./esm.mjs")') > -1)
+  })
+
+  it('updates complex require expressions', async () => {
+    const update = await specifier.update(join(fixtures, 'complexRequire.js'), spec => {
+      if (spec.value === './user.js') {
+        return './other-user.js'
+      }
+
+      if (spec.value === './code.js') {
+        return './other-code.js'
+      }
+    })
+
+    assert.ok(update.indexOf('./other-user.js') > -1)
+    assert.equal([...update.matchAll(/other-code\.js/g)].length, 3)
   })
 
   it('updates `resolve` from different module types', async () => {

@@ -148,6 +148,22 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
         }
       }
 
+      if (node.type === 'ArrowFunctionExpression') {
+        const { body } = node
+
+        if (body.type === 'ImportExpression') {
+          formatExpression(body)
+        }
+
+        if (
+          body.type === 'CallExpression' &&
+          body.callee.type === 'Identifier' &&
+          body.callee.name === 'require'
+        ) {
+          formatExpression(body)
+        }
+      }
+
       if (node.type === 'TSImportType') {
         const { argument } = node
 
