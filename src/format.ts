@@ -164,6 +164,15 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
         }
       }
 
+      if (
+        node.type === 'MemberExpression' &&
+        node.object.type === 'ImportExpression' &&
+        node.property.type === 'Identifier' &&
+        node.property.name === 'then'
+      ) {
+        formatExpression(node.object)
+      }
+
       if (node.type === 'TSImportType') {
         const { argument } = node
 

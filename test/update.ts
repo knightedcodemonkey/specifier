@@ -89,7 +89,7 @@ describe('update', () => {
     )
 
     assert.ok(update.indexOf('./other-user.js') > -1)
-    assert.equal([...update.matchAll(/other-code\.js/g)].length, 3)
+    assert.equal([...update.matchAll(/other-code\.js/g)].length, 5)
   })
 
   it('works with typescript', async () => {

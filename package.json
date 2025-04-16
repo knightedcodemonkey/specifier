@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Node.js tool for updating your ES module and CommonJS specifiers.",
   "type": "module",
   "main": "dist",
