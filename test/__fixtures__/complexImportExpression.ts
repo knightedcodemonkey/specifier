@@ -22,3 +22,11 @@ const bar = () => {
 }
 
 (() => import('./code.js'))()
+
+const importOther = () => {
+  import(`./code.js`).then((mod) => {});
+}
+
+const importOtherOther = () => {
+  import(`./code.js`)
+}
