@@ -2,7 +2,7 @@ import './path/to/side-effect.js'
 
 const Component = () => {
   return (
-    <p>I am a component.</p>
+    <button onClick={() => import('./dynamic.js')}>I am a component.</button>
   )
 }
 const App = () => {
