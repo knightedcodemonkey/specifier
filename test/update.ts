@@ -107,10 +107,15 @@ describe('update', () => {
   })
 
   it('works with jsx', async () => {
-    const update = await specifier.update(join(fixtures, 'jsx.jsx'), () => {
+    const update = await specifier.update(join(fixtures, 'jsx.jsx'), ({ value }) => {
+      if (value === './dynamic.js') {
+        return './dynamic.mjs'
+      }
+
       return './jsx.js'
     })
 
+    assert.ok(update.indexOf('./dynamic.mjs') > -1)
     assert.equal(update.match(/\.\/jsx\.js/g)?.length, 2)
   })
 
