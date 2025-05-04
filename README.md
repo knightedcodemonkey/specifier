@@ -7,8 +7,8 @@
 Node.js tool for parsing imports to change ESM and CJS [specifiers](https://nodejs.org/api/esm.html#import-specifiers).
 
 - Rewrite specifier values.
-- Updates files or strings.
 - Read metadata about a specifier's [AST](https://www.npmjs.com/package/oxc-parser) node.
+- Updates files or strings.
 - Parses `import`, `import()`, `import.meta.resolve()`, `export`, `require`, and `require.resolve()`.
 
 ## Example
@@ -54,7 +54,7 @@ import { type Spec, specifier } from '@knighted/specifier'
 
 const nodes: { node: Spec['node']; parent: Spec['parent'] }[] = []
 
-await specifier.update('file.ts', ({ parent, node }) => {
+await specifier.update('file.ts', ({ node, parent }) => {
   nodes.push({ node, parent })
 })
 
