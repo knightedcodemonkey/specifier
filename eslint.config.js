@@ -19,6 +19,27 @@ export default tseslint.config(
       '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+      'n/no-unsupported-features/node-builtins': [
+        'error',
+        {
+          ignores: [
+            'import.meta.resolve',
+          ]
+        }
+      ]
     },
   },
+  {
+    files: ['test/*.ts'],
+    rules: {
+      'n/no-unsupported-features/node-builtins': [
+        'error',
+        {
+          ignores: [
+            'test.describe',
+          ]
+        }
+      ]
+    }
+  }
 )
