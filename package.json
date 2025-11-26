@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Node.js tool for updating your ES module and CommonJS specifiers.",
   "type": "module",
   "main": "dist",
@@ -59,16 +59,16 @@
     "oxc-parser": "^0.78.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.32.0",
-    "@types/node": "^24.1.0",
-    "babel-dual-package": "^1.2.0",
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "babel-dual-package": "^1.2.2",
     "c8": "^10.1.3",
-    "eslint": "^9.32.0",
-    "eslint-plugin-n": "^17.21.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-n": "^17.23.1",
     "prettier": "^3.6.2",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.38.0"
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.0"
   },
   "prettier": {
     "arrowParens": "avoid",
