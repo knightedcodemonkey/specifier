@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "Node.js tool for updating your ES module and CommonJS specifiers.",
   "type": "module",
   "main": "dist",
@@ -54,9 +54,9 @@
     "url": "https://github.com/knightedcodemonkey/specifier/issues"
   },
   "dependencies": {
-    "@knighted/walk": "^1.0.0",
-    "magic-string": "^0.30.17",
-    "oxc-parser": "^0.78.0"
+    "@knighted/walk": "^1.0.1",
+    "magic-string": "^0.30.21",
+    "oxc-parser": "^0.99.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
