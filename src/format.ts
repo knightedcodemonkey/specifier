@@ -1,5 +1,4 @@
 import MagicString from 'magic-string'
-import { walk } from '@knighted/walk'
 import type {
   ParseResult,
   Node,
@@ -8,6 +7,7 @@ import type {
   ImportExpression,
   CallExpression,
 } from 'oxc-parser'
+import { Visitor } from 'oxc-parser'
 
 import type { Callback } from './types.js'
 
@@ -110,141 +110,136 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
     }
   }
 
-  await walk(ast.program, {
-    enter(node) {
-      if (node.type === 'ExpressionStatement') {
-        const { expression } = node
+  const visitor = new Visitor({
+    ExpressionStatement(node) {
+      const { expression } = node
 
-        if (expression.type === 'ImportExpression') {
-          formatExpression(expression)
-        }
+      if (expression.type === 'ImportExpression') {
+        formatExpression(expression)
       }
-
-      if (node.type === 'CallExpression') {
-        /**
-         * Check for:
-         *
-         * require()
-         * require.resolve()
-         * import.meta.resolve()
-         *
-         * Omitted:
-         * const require = createRequire(import.meta.url)
-         */
-        if (
-          (node.callee.type === 'Identifier' && node.callee.name === 'require') ||
-          (node.callee.type === 'MemberExpression' &&
-            node.callee.object.type === 'Identifier' &&
-            node.callee.object.name === 'require' &&
-            node.callee.property.type === 'Identifier' &&
-            node.callee.property.name === 'resolve') ||
-          (node.callee.type === 'MemberExpression' &&
-            node.callee.object.type === 'MetaProperty' &&
-            node.callee.object.meta.name === 'import' &&
-            node.callee.property.type === 'Identifier' &&
-            node.callee.property.name === 'resolve')
-        ) {
-          formatExpression(node)
-        }
+    },
+    CallExpression(node) {
+      /**
+       * Check for:
+       *
+       * require()
+       * require.resolve()
+       * import.meta.resolve()
+       *
+       * Omitted:
+       * const require = createRequire(import.meta.url)
+       */
+      if (
+        (node.callee.type === 'Identifier' && node.callee.name === 'require') ||
+        (node.callee.type === 'MemberExpression' &&
+          node.callee.object.type === 'Identifier' &&
+          node.callee.object.name === 'require' &&
+          node.callee.property.type === 'Identifier' &&
+          node.callee.property.name === 'resolve') ||
+        (node.callee.type === 'MemberExpression' &&
+          node.callee.object.type === 'MetaProperty' &&
+          node.callee.object.meta.name === 'import' &&
+          node.callee.property.type === 'Identifier' &&
+          node.callee.property.name === 'resolve')
+      ) {
+        formatExpression(node)
       }
+    },
+    ArrowFunctionExpression(node) {
+      const { body } = node
 
-      if (node.type === 'ArrowFunctionExpression') {
-        const { body } = node
-
-        if (body.type === 'ImportExpression') {
-          formatExpression(body)
-        }
-
-        if (
-          body.type === 'CallExpression' &&
-          body.callee.type === 'Identifier' &&
-          body.callee.name === 'require'
-        ) {
-          formatExpression(body)
-        }
+      if (body.type === 'ImportExpression') {
+        formatExpression(body)
       }
 
       if (
-        node.type === 'MemberExpression' &&
+        body.type === 'CallExpression' &&
+        body.callee.type === 'Identifier' &&
+        body.callee.name === 'require'
+      ) {
+        formatExpression(body)
+      }
+    },
+    MemberExpression(node) {
+      if (
         node.object.type === 'ImportExpression' &&
         node.property.type === 'Identifier' &&
         node.property.name === 'then'
       ) {
         formatExpression(node.object)
       }
+    },
+    TSImportType(node) {
+      const { source } = node
+      const { start, end, value } = source
+      const updated = cb({
+        type: 'StringLiteral',
+        node: source,
+        parent: node,
+        start,
+        end,
+        value,
+      })
 
-      if (node.type === 'TSImportType') {
-        const { argument } = node
+      if (typeof updated === 'string') {
+        code.update(start + 1, end - 1, updated)
+      }
+    },
+    ImportDeclaration(node) {
+      const { source } = node
+      const { start, end, value } = source
+      const updated = cb({
+        type: 'StringLiteral',
+        node: source,
+        parent: node,
+        start,
+        end,
+        value,
+      })
 
-        if (argument.type === 'TSLiteralType' && isStringLiteral(argument.literal)) {
-          const { start, end, value } = argument.literal
-          const updated = cb({
-            type: 'StringLiteral',
-            node: argument.literal,
-            parent: node,
-            start,
-            end,
-            value,
-          })
-
-          if (typeof updated === 'string') {
-            code.update(start + 1, end - 1, updated)
-          }
-        }
+      if (typeof updated === 'string') {
+        code.update(start + 1, end - 1, updated)
+      }
+    },
+    ExportNamedDeclaration(node) {
+      if (!node.source) {
+        return
       }
 
-      if (node.type === 'ImportDeclaration') {
-        const { source } = node
-        const { start, end, value } = source
-        const updated = cb({
-          type: 'StringLiteral',
-          node: source,
-          parent: node,
-          start,
-          end,
-          value,
-        })
+      const { source } = node
+      const { start, end, value } = source
+      const updated = cb({
+        type: 'StringLiteral',
+        node: source,
+        parent: node,
+        start,
+        end,
+        value,
+      })
 
-        if (typeof updated === 'string') {
-          code.update(start + 1, end - 1, updated)
-        }
+      if (typeof updated === 'string') {
+        code.update(start + 1, end - 1, updated)
       }
+    },
+    ExportAllDeclaration(node) {
+      const { source } = node
+      const { start, end, value } = source
+      const updated = cb({
+        type: 'StringLiteral',
+        node: source,
+        parent: node,
+        start,
+        end,
+        value,
+      })
 
-      if (node.type === 'ExportNamedDeclaration' && node.source) {
-        const { source } = node
-        const { start, end, value } = source
-        const updated = cb({
-          type: 'StringLiteral',
-          node: source,
-          parent: node,
-          start,
-          end,
-          value,
-        })
-
-        if (typeof updated === 'string') {
-          code.update(start + 1, end - 1, updated)
-        }
-      }
-
-      if (node.type === 'ExportAllDeclaration') {
-        const { source } = node
-        const { start, end, value } = source
-        const updated = cb({
-          type: 'StringLiteral',
-          node: source,
-          parent: node,
-          start,
-          end,
-          value,
-        })
-
-        if (typeof updated === 'string') {
-          code.update(start + 1, end - 1, updated)
-        }
+      if (typeof updated === 'string') {
+        code.update(start + 1, end - 1, updated)
       }
     },
   })
+
+  visitor.visit(ast.program)
 
   return code.toString()
 }
