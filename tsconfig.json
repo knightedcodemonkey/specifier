@@ -1,11 +1,13 @@
 {
   "compilerOptions": {
+    "rootDir": "src",
     "module": "NodeNext",
     "declaration": true,
     "outDir": "dist",
     "emitDeclarationOnly": true,
     "isolatedModules": true,
     "strict": true,
+    "types": ["node"],
     "skipLibCheck": true
   },
   "include": ["src"]

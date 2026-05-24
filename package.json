@@ -1,6 +1,6 @@
 {
   "name": "@knighted/specifier",
-  "version": "2.0.9",
+  "version": "3.0.0",
   "description": "Node.js tool for updating your ES module and CommonJS specifiers.",
   "type": "module",
   "main": "dist",
@@ -20,7 +20,7 @@
   },
   "types": "./dist/specifier.d.cts",
   "engines": {
-    "node": ">=20"
+    "node": "^22.22.1 || ^24.0.0 || ^26.0.0"
   },
   "engineStrict": true,
   "scripts": {
@@ -32,7 +32,9 @@
     "build:dual": "babel-dual-package src --copy-files --no-cjs-dir --extensions .ts",
     "prebuild": "rm -rf ./dist",
     "build": "npm run build:types && npm run build:dual",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
   },
   "keywords": [
     "parse imports",
@@ -54,21 +56,34 @@
     "url": "https://github.com/knightedcodemonkey/specifier/issues"
   },
   "dependencies": {
-    "@knighted/walk": "^1.0.1",
     "magic-string": "^0.30.21",
-    "oxc-parser": "^0.99.0"
+    "oxc-parser": "^0.132.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/node": "^24.10.1",
-    "babel-dual-package": "^1.2.2",
-    "c8": "^10.1.3",
-    "eslint": "^9.39.1",
-    "eslint-plugin-n": "^17.23.1",
-    "prettier": "^3.6.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.0"
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.1",
+    "babel-dual-package": "^2.0.1",
+    "c8": "^11.0.0",
+    "eslint": "^10.4.0",
+    "eslint-plugin-n": "^18.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
+    "prettier": "^3.8.3",
+    "tsx": "^4.22.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4"
+  },
+  "overrides": {
+    "c8": {
+      "yargs": ">17.7.2 <19"
+    }
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": "prettier --write"
   },
   "prettier": {
     "arrowParens": "avoid",
