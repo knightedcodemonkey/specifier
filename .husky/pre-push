@@ -1,2 +1,4 @@
+#!/usr/bin/env sh
+
 npm run lint-staged
 npm run check-types
