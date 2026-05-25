@@ -16,6 +16,7 @@ import type { Callback } from './types.js'
 type BindingKind = 'other' | 'createRequireFactory' | 'requireAlias'
 type Scope = {
   parent: Scope | null
+  functionScope: boolean
   bindings: Map<string, BindingKind>
 }
 type UnknownRecord = Record<string, unknown>
@@ -107,11 +108,14 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
   const code = new MagicString(src)
   let scope: Scope = {
     parent: null,
+    functionScope: true,
     bindings: new Map(),
   }
-  const pushScope = () => {
+  const variableDeclarationKinds: string[] = []
+  const pushScope = (options?: { functionScope?: boolean }) => {
     scope = {
       parent: scope,
+      functionScope: options?.functionScope ?? false,
       bindings: new Map(),
     }
   }
@@ -120,8 +124,26 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
       scope = scope.parent
     }
   }
-  const defineBinding = (name: string, kind: BindingKind = 'other') => {
-    scope.bindings.set(name, kind)
+  const getNearestFunctionScope = () => {
+    let cursor: Scope | null = scope
+
+    while (cursor) {
+      if (cursor.functionScope) {
+        return cursor
+      }
+
+      cursor = cursor.parent
+    }
+
+    return scope
+  }
+  const defineBinding = (
+    name: string,
+    kind: BindingKind = 'other',
+    options?: { varScoped?: boolean },
+  ) => {
+    const targetScope = options?.varScoped ? getNearestFunctionScope() : scope
+    targetScope.bindings.set(name, kind)
   }
   const getBindingScope = (name: string) => {
     let cursor: Scope | null = scope
@@ -191,7 +213,10 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
       defineBinding(specifier.local.name, 'createRequireFactory')
     }
   }
-  const markRequireDestructureCreateRequire = (node: VariableDeclarator) => {
+  const markRequireDestructureCreateRequire = (
+    node: VariableDeclarator,
+    options?: { varScoped?: boolean },
+  ) => {
     if (node.id.type !== 'ObjectPattern' || node.init?.type !== 'CallExpression') {
       return
     }
@@ -212,7 +237,7 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
       }
 
       for (const name of collectBindingNames(property.value)) {
-        defineBinding(name, 'createRequireFactory')
+        defineBinding(name, 'createRequireFactory', options)
       }
     }
   }
@@ -305,7 +330,7 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
 
   const visitor = new Visitor({
     Program() {
-      pushScope()
+      pushScope({ functionScope: true })
     },
     'Program:exit'() {
       popScope()
@@ -315,7 +340,7 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
         defineBinding(node.id.name)
       }
 
-      pushScope()
+      pushScope({ functionScope: true })
 
       for (const parameter of node.params) {
         for (const name of collectBindingNames(parameter)) {
@@ -327,7 +352,7 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
       popScope()
     },
     FunctionExpression(node) {
-      pushScope()
+      pushScope({ functionScope: true })
 
       if (node.id && node.id.type === 'Identifier') {
         defineBinding(node.id.name)
@@ -343,7 +368,7 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
       popScope()
     },
     ArrowFunctionExpression(node) {
-      pushScope()
+      pushScope({ functionScope: true })
 
       for (const parameter of node.params) {
         for (const name of collectBindingNames(parameter)) {
@@ -354,14 +379,6 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
       const { body } = node
 
       if (body.type === 'ImportExpression') {
-        formatExpression(body)
-      }
-
-      if (
-        body.type === 'CallExpression' &&
-        body.callee.type === 'Identifier' &&
-        body.callee.name === 'require'
-      ) {
         formatExpression(body)
       }
     },
@@ -410,21 +427,28 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
         code.update(start + 1, end - 1, updated)
       }
     },
+    VariableDeclaration(node) {
+      variableDeclarationKinds.push(node.kind)
+    },
+    'VariableDeclaration:exit'() {
+      variableDeclarationKinds.pop()
+    },
     VariableDeclarator(node) {
+      const varScoped = variableDeclarationKinds.at(-1) === 'var'
       const names = collectBindingNames(node.id)
 
       for (const name of names) {
-        defineBinding(name)
+        defineBinding(name, 'other', { varScoped })
       }
 
-      markRequireDestructureCreateRequire(node)
+      markRequireDestructureCreateRequire(node, { varScoped })
 
       if (node.id.type !== 'Identifier' || node.init?.type !== 'CallExpression') {
         return
       }
 
       if (isCreateRequireCall(node.init)) {
-        defineBinding(node.id.name, 'requireAlias')
+        defineBinding(node.id.name, 'requireAlias', { varScoped })
       }
     },
     AssignmentExpression(node) {
@@ -457,9 +481,7 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
        * require()
        * require.resolve()
        * import.meta.resolve()
-       *
-       * Omitted:
-       * const require = createRequire(import.meta.url)
+       * createRequire-backed aliases (including `require`)
        */
       if (
         (node.callee.type === 'Identifier' &&

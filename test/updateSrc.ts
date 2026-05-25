@@ -293,4 +293,40 @@ describe('updateSrc', () => {
 
     assert.ok(update.indexOf("local('./should-skip.js')") > -1)
   })
+
+  it('does not rewrite shadowed require in arrow expression body', async () => {
+    const update = await specifier.updateSrc(
+      `
+        const callWithShadowedRequire = require => require('./skip.js')
+        require('./rewrite.js')
+      `,
+      'js',
+      spec => {
+        return spec.value.replace('.js', '.mjs')
+      },
+    )
+
+    assert.ok(update.indexOf("require('./skip.js')") > -1)
+    assert.ok(update.indexOf("require('./rewrite.mjs')") > -1)
+  })
+
+  it('hoists var createRequire aliases out of block scope', async () => {
+    const update = await specifier.updateSrc(
+      `
+        import { createRequire } from 'node:module'
+
+        {
+          var loader = createRequire(import.meta.url)
+        }
+
+        loader('./outside.js')
+      `,
+      'js',
+      spec => {
+        return spec.value.replace('.js', '.mjs')
+      },
+    )
+
+    assert.ok(update.indexOf("loader('./outside.mjs')") > -1)
+  })
 })
