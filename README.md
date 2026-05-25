@@ -9,7 +9,7 @@ Node.js tool for parsing imports to change ESM and CJS [specifiers](https://node
 - Rewrite specifier values.
 - Read metadata about a specifier's [AST](https://www.npmjs.com/package/oxc-parser) node.
 - Updates files or strings.
-- Parses `import`, `import()`, `import.meta.resolve()`, `export`, `require`, and `require.resolve()`.
+- Parses `import`, `import()`, `import.meta.resolve()`, `export`, `require`, `require.resolve()`, and `createRequire()` aliases.
 
 ## Example
 
