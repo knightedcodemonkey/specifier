@@ -4,9 +4,9 @@ import { parse } from 'acorn'
 import { analyze } from 'periscopic'
 
 const source = `
-export { foo } from './reexport.js'
-const { createRequire } = require('node:module')
-const customRequire = createRequire(import.meta.url)
+  import { createRequire } from 'node:module'
+  export { foo } from './reexport.js'
+  const customRequire = createRequire(import.meta.url)
 `
 
 const program = parse(source, {
@@ -28,5 +28,12 @@ console.log(
 console.log(
   `rootScope.find_owner('customRequire') === null: ${ownerFromRootScope === null}`,
 )
-console.log('rootScope has no declarations', rootScope.declarations.size === 0)
+console.log(
+  'rootScope has createRequire declaration',
+  rootScope.declarations.has('createRequire'),
+)
+console.log(
+  'rootScope is missing customRequire declaration',
+  !rootScope.declarations.has('customRequire'),
+)
 console.log('Reproduced: customRequire is owned by export-created child scope')
