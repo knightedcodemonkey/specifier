@@ -408,7 +408,7 @@ describe('updateSrc', () => {
     assert.ok(update.indexOf("require('./rewrite.mjs')") > -1)
   })
 
-  it('keeps require scope in sync across a re-export scope', async () => {
+  it('does not desync createRequire tracking after a re-export declaration', async () => {
     const update = await specifier.updateSrc(
       `
         export { foo } from './reexport.js'
