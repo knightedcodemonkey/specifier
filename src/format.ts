@@ -391,6 +391,30 @@ const format = async (src: string, ast: ParseResult, cb: Callback) => {
     'BlockStatement:exit'() {
       popScope()
     },
+    ForStatement() {
+      pushScope()
+    },
+    'ForStatement:exit'() {
+      popScope()
+    },
+    ForInStatement() {
+      pushScope()
+    },
+    'ForInStatement:exit'() {
+      popScope()
+    },
+    ForOfStatement() {
+      pushScope()
+    },
+    'ForOfStatement:exit'() {
+      popScope()
+    },
+    SwitchStatement() {
+      pushScope()
+    },
+    'SwitchStatement:exit'() {
+      popScope()
+    },
     CatchClause(node) {
       pushScope()
 
