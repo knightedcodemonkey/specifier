@@ -57,8 +57,7 @@
   },
   "dependencies": {
     "magic-string": "^0.30.21",
-    "oxc-parser": "^0.132.0",
-    "periscopic": "^4.0.3"
+    "oxc-parser": "^0.132.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

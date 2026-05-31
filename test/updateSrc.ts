@@ -348,4 +348,83 @@ describe('updateSrc', () => {
     assert.ok(update.indexOf("require('./skip.js')") > -1)
     assert.ok(update.indexOf("require('./rewrite.mjs')") > -1)
   })
+
+  it('does not rewrite require shadowed by for-in scope', async () => {
+    const update = await specifier.updateSrc(
+      `
+        for (const require in { value: 1 }) {
+          require('./skip.js')
+        }
+
+        require('./rewrite.js')
+      `,
+      'js',
+      spec => {
+        return spec.value.replace('.js', '.mjs')
+      },
+    )
+
+    assert.ok(update.indexOf("require('./skip.js')") > -1)
+    assert.ok(update.indexOf("require('./rewrite.mjs')") > -1)
+  })
+
+  it('does not rewrite require shadowed by for scope', async () => {
+    const update = await specifier.updateSrc(
+      `
+        for (let require = value => value; false; ) {
+          require('./skip.js')
+        }
+
+        require('./rewrite.js')
+      `,
+      'js',
+      spec => {
+        return spec.value.replace('.js', '.mjs')
+      },
+    )
+
+    assert.ok(update.indexOf("require('./skip.js')") > -1)
+    assert.ok(update.indexOf("require('./rewrite.mjs')") > -1)
+  })
+
+  it('does not rewrite require shadowed by switch scope', async () => {
+    const update = await specifier.updateSrc(
+      `
+        switch (0) {
+          default:
+            const require = value => value
+            require('./skip.js')
+        }
+
+        require('./rewrite.js')
+      `,
+      'js',
+      spec => {
+        return spec.value.replace('.js', '.mjs')
+      },
+    )
+
+    assert.ok(update.indexOf("require('./skip.js')") > -1)
+    assert.ok(update.indexOf("require('./rewrite.mjs')") > -1)
+  })
+
+  it('keeps require scope in sync across a re-export scope', async () => {
+    const update = await specifier.updateSrc(
+      `
+        export { foo } from './reexport.js'
+
+        const { createRequire } = require('node:module')
+        const customRequire = createRequire(import.meta.url)
+
+        customRequire('./rewrite.js')
+      `,
+      'js',
+      spec => {
+        return spec.value.replace('.js', '.mjs')
+      },
+    )
+
+    assert.ok(update.indexOf("from './reexport.mjs'") > -1)
+    assert.ok(update.indexOf("customRequire('./rewrite.mjs')") > -1)
+  })
 })
