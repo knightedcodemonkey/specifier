@@ -329,4 +329,23 @@ describe('updateSrc', () => {
 
     assert.ok(update.indexOf("loader('./outside.mjs')") > -1)
   })
+
+  it('does not rewrite require shadowed by for-of scope', async () => {
+    const update = await specifier.updateSrc(
+      `
+        for (const require of [value => value]) {
+          require('./skip.js')
+        }
+
+        require('./rewrite.js')
+      `,
+      'js',
+      spec => {
+        return spec.value.replace('.js', '.mjs')
+      },
+    )
+
+    assert.ok(update.indexOf("require('./skip.js')") > -1)
+    assert.ok(update.indexOf("require('./rewrite.mjs')") > -1)
+  })
 })
