@@ -34,7 +34,8 @@
     "build": "npm run build:types && npm run build:dual",
     "prepack": "npm run build",
     "prepare": "husky",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "repro:periscopic-scoping-bug": "node ./scripts/repro-periscopic-scoping-bug.mjs"
   },
   "keywords": [
     "parse imports",
@@ -62,12 +63,14 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^25.9.1",
+    "acorn": "^8.15.0",
     "babel-dual-package": "^2.0.1",
     "c8": "^11.0.0",
     "eslint": "^10.4.0",
     "eslint-plugin-n": "^18.0.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
+    "periscopic": "^4.0.3",
     "prettier": "^3.8.3",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3",
